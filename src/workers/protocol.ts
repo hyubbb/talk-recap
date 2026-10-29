@@ -44,6 +44,8 @@ export interface ParseMeta {
   firstTs: number;
   lastTs: number;
   unparsedLines: number;
+  /** 해석 못 한 줄 앞 3개. 이름과 내용을 가린 형태 */
+  unparsedSamples: string[];
 }
 
 export type WorkerResponse =

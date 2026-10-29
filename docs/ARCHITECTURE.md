@@ -20,6 +20,9 @@
        삭제 토큰은 localStorage에만,           DB엔 토큰 sha256 해시만
        DELETE /api/share/[id] (x-delete-token)
   └─ /s/[id] 에서 서버가 읽어 렌더, opengraph-image로 미리보기
+  └─ 퀴즈 점수 POST /api/share/[id]/quiz → quiz_scores
+  └─ 반박·투표 POST /api/share/[id]/objections(…/vote) → objections, votes (cast_objection_vote RPC)
+       └─ 서버가 Realtime Broadcast(report:{id})로 바뀐 집계 전송 → 다른 브라우저 즉시 반영
   └─ Vercel Cron → /api/cron/ping (CRON_SECRET) → Supabase 핑
 ```
 
@@ -37,7 +40,14 @@
 | `src/app/s/[id]/` | 공유 결과 화면, 카톡 미리보기 이미지 |
 | `src/app/api/share/` | 공유 생성·삭제 API |
 | `src/lib/share/` | 슬러그·삭제 토큰(`token.ts`), 본문 스키마(`schema.ts`), 읽기(`repo.ts`, server-only) |
-| `src/lib/supabase/` | 서버 전용 Supabase 클라이언트 |
+| `src/lib/supabase/` | 서버 전용 클라이언트(`server.ts`), Realtime 수신 전용 브라우저 클라이언트(`browser.ts`) |
+| `src/lib/story/` | 스토리 슬라이드 순서·배경색 |
+| `src/lib/quiz/` | 퀴즈 출제, 민감 단어 필터 |
+| `src/lib/bag/` | 픽셀 아이콘과 물건 키워드 매칭 |
+| `src/lib/objection/` | 반박 대상·과반 규칙, Realtime 이벤트 타입 |
+| `src/lib/imagePrompt/` | 이미지 생성 프롬프트 템플릿 |
+| `src/lib/ui/savePng.ts` | 카드·슬라이드 PNG 저장 (html-to-image) |
+| `src/components/story/`, `share/`, `quiz/`, `objection/`, `bag/`, `cards/`, `prompts/` | 스토리, 내 카드 뽑기, 퀴즈, 반박, 가방 카드, 멤버 카드, 프롬프트 화면 |
 | `src/components/` | `upload/`, `analysis/`, `report/` 화면 조각 |
 | `src/state/` | Jotai atom (`upload.ts`, `analysis.ts`) |
 | `src/hooks/` | 워커 연결(`useAnalyzeWorker`), 분석 실행(`useRunAnalysis`, TanStack mutation) |

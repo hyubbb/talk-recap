@@ -98,7 +98,7 @@ export function SharePanel({ saved, enabled }: { saved: SavedReport; enabled: bo
   const error = create.error ?? remove.error;
 
   return (
-    <section className="mt-8 rounded-[var(--radius-card)] bg-dusk p-5" aria-live="polite">
+    <section id="share-panel" className="mt-8 rounded-[var(--radius-card)] bg-dusk p-5" aria-live="polite">
       <p className="text-[15px] font-bold">공유 링크</p>
       {info ? (
         <>

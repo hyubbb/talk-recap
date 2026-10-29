@@ -10,6 +10,8 @@
 | `OPENAI_SYNTH_MODEL` | 직접 | 아니오 | 종합(1번 호출). 좋은 모델. 기본 `gpt-4.1` |
 | `SUPABASE_URL` | Supabase > Project Settings > API | 공유 기능 | `https://xxxx.supabase.co` |
 | `SUPABASE_SECRET_KEY` | Supabase > Project Settings > API Keys | 공유 기능 | `sb_secret_...` 또는 예전 `service_role` 키. **서버 전용, `NEXT_PUBLIC_` 붙이지 않기** |
+| `NEXT_PUBLIC_SUPABASE_URL` | `SUPABASE_URL`과 같은 값 | 반박 실시간 | 없으면 10초마다 다시 읽는다 |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase > API Keys > publishable | 반박 실시간 | Realtime Broadcast 수신 전용. 테이블 공개 정책은 없다 |
 | `CRON_SECRET` | 직접(임의 문자열 32자 이상) | 배포 시 | `vercel.json` 크론이 하루 1번 `/api/cron/ping`을 불러 Supabase 일시중지를 막는다. Vercel이 `Authorization: Bearer` 헤더로 보낸다 |
 
 로컬: `cp .env.example .env.local` 후 값 채우기. `.env*`는 `.gitignore`로 막혀 있다(`.env.example`만 예외).
@@ -17,7 +19,8 @@
 
 ## DB 스키마
 
-`supabase/migrations/0001_init.sql` — Supabase 대시보드 SQL Editor에 전체 붙여넣고 Run.
+`supabase/migrations/0001_init.sql`, 이어서 `0002_realtime.sql` — Supabase 대시보드 SQL Editor에 순서대로 붙여넣고 Run.
+`0002`는 반박 투표 함수(`cast_objection_vote`)와 Realtime 정책을 만든다.
 
 | 테이블 | 용도 |
 | --- | --- |

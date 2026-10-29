@@ -39,4 +39,6 @@ export interface ParsedChat {
   system: SystemEvent[];
   /** 메시지로도, 이어지는 줄로도 해석하지 못한 줄 수 (형식 감지 품질 확인용) */
   unparsedLines: number;
+  /** 해석 못 한 줄 앞 3개 ("형식 제보"용, 보여주기 전에 이름을 가린다) */
+  unparsedSamples: string[];
 }

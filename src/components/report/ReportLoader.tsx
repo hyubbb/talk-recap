@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { Story } from "@/components/story/Story";
+import type { SavedReport } from "@/lib/report/storage";
 import { ReportView } from "./ReportView";
 import { loadReport } from "@/lib/report/storage";
 import { SharePanel } from "@/components/share/SharePanel";
@@ -30,5 +33,43 @@ export function ReportLoader({ id, shareEnabled }: { id: string; shareEnabled: b
       </main>
     );
   }
-  return <ReportView saved={saved} actions={<SharePanel saved={saved} enabled={shareEnabled} />} />;
+  return <LocalExperience saved={saved} shareEnabled={shareEnabled} />;
+}
+
+/** 업로더 화면: 스토리 먼저 → 리포트(공유 버튼 포함) */
+function LocalExperience({ saved, shareEnabled }: { saved: SavedReport; shareEnabled: boolean }) {
+  const [story, setStory] = useState(true);
+  const router = useRouter();
+  const toShare = () => {
+    setStory(false);
+    requestAnimationFrame(() => document.getElementById("share-panel")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  };
+  if (story) {
+    return (
+      <Story
+        saved={saved}
+        onClose={() => setStory(false)}
+        onQuiz={() => router.push(`/r/${saved.id}/quiz`)}
+        onShare={shareEnabled ? toShare : undefined}
+      />
+    );
+  }
+  return (
+    <ReportView
+      saved={saved}
+      actions={
+        <>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <button type="button" onClick={() => setStory(true)} className="rounded-full bg-dusk px-4 py-2 text-[14px] font-semibold">
+              스토리 다시 보기
+            </button>
+            <Link href={`/r/${saved.id}/quiz`} className="rounded-full bg-dusk px-4 py-2 text-[14px] font-semibold">
+              퀴즈 미리 풀기
+            </Link>
+          </div>
+          <SharePanel saved={saved} enabled={shareEnabled} />
+        </>
+      }
+    />
+  );
 }

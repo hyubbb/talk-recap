@@ -36,3 +36,14 @@ export async function incrementView(id: string): Promise<void> {
   const { error } = await db.rpc("increment_report_view", { p_id: id });
   if (error) console.error(`[share] view count failed: ${error.code}`);
 }
+
+/** 공유가 살아 있는지만 확인 (payload는 읽지 않는다) */
+export async function reportExists(id: string): Promise<boolean> {
+  await connection();
+  if (!isValidSlug(id)) return false;
+  const db = getSupabase();
+  if (!db) return false;
+  const { data, error } = await db.from("reports").select("id").eq("id", id).gt("expires_at", new Date().toISOString()).maybeSingle();
+  if (error) console.error(`[share] exists failed: ${error.code}`);
+  return !!data;
+}

@@ -9,6 +9,8 @@ import { Dropzone } from "@/components/upload/Dropzone";
 import { MemberEditor } from "@/components/upload/MemberEditor";
 import { RangePicker } from "@/components/upload/RangePicker";
 import { StatsPreview } from "@/components/upload/StatsPreview";
+import { FormatReport } from "@/components/upload/FormatReport";
+import { needsFormatReport } from "@/lib/kakao/formatReport";
 import { useAnalyzeWorker } from "@/hooks/useAnalyzeWorker";
 import { useRunAnalysis } from "@/hooks/useRunAnalysis";
 import { analysisAtom } from "@/state/analysis";
@@ -84,6 +86,9 @@ export default function NewPage() {
             파일 {meta.files.length}개 · 메시지 {meta.messageCount.toLocaleString()}개 읽음
             {meta.unparsedLines > 0 && ` · 해석 못 한 줄 ${meta.unparsedLines}개`}
           </p>
+          {needsFormatReport(meta.unparsedLines, meta.messageCount) && (
+            <FormatReport samples={meta.unparsedSamples} unparsed={meta.unparsedLines} />
+          )}
 
           <div ref={progressRef} className="mt-6 scroll-mt-4">
             <AnalysisProgress />

@@ -4,6 +4,13 @@ import Link from "next/link";
 import type { SavedReport } from "@/lib/report/storage";
 import type { Quote } from "@/lib/llm/schema";
 import { initialOf } from "@/lib/ui/colors";
+import { useRef } from "react";
+import { ObjectionSlot } from "@/components/objection/ObjectionSlot";
+import { BagCard } from "@/components/bag/BagCard";
+import { MemberCard } from "@/components/cards/MemberCard";
+import { SaveImageButton } from "@/components/cards/SaveImageButton";
+import { ImagePrompts } from "@/components/prompts/ImagePrompts";
+import type { Report } from "@/lib/llm/schema";
 
 const fmt = (ts: number) => {
   const d = new Date(ts);
@@ -16,6 +23,8 @@ interface Props {
   shared?: { expiresAt: string };
   /** 결과 제목 아래에 붙는 영역 (공유 버튼 등) */
   actions?: React.ReactNode;
+  /** 공유 링크에서 "나는 누구?"로 고른 이름 */
+  me?: string | null;
 }
 
 export function ReportView({ saved, shared, actions }: Props) {
@@ -94,6 +103,8 @@ export function ReportView({ saved, shared, actions }: Props) {
                 <Field label="스트레스 받을 때">{m.stress}</Field>
                 <Field label="챙기는 방식">{m.care}</Field>
                 <Evidence quotes={m.quotes} />
+                <ObjectionSlot target={`member:${m.name}`} owner={m.name} />
+                <MemberCardSave member={m} color={color(m.name)} />
               </div>
             </article>
           ))}
@@ -145,44 +156,39 @@ export function ReportView({ saved, shared, actions }: Props) {
                   </li>
                 ))}
               </ul>
+              <div className="mt-3">
+                <ObjectionSlot target={`mbti:${m.name}`} owner={m.name} />
+              </div>
             </details>
           ))}
         </div>
       </Section>
 
       <Section title="What's in my bag">
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {report.members.map((m) => (
-            <div key={m.name} className="rounded-[var(--radius-card)] bg-dusk p-5">
-              <p className="text-[15px] font-semibold" style={{ color: color(m.name) }}>
-                {m.name}
-              </p>
-              <p className="font-pixel mt-1 text-[15px]">{m.bag.bag}</p>
-              <ul className="mt-3 grid grid-cols-1 gap-2 text-[14px] leading-[1.5] sm:grid-cols-2">
-                {m.bag.items.map((it) => (
-                  <li key={it.item} className="rounded-[12px] bg-dusk-2 px-3 py-2">
-                    <span className="font-semibold">{it.item}</span>
-                    <span className="block text-[13px] text-haze">{it.reason}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <BagItem key={m.name} member={m} color={color(m.name)} />
           ))}
         </div>
       </Section>
 
       <Section title="어워드">
         <ul className="flex flex-col gap-3">
-          {report.awards.map((a) => (
-            <li key={a.title} className="rounded-[var(--radius-card)] bg-dusk p-4">
+          {report.awards.map((a, i) => (
+            <li key={a.title} className="flex flex-col gap-2 rounded-[var(--radius-card)] bg-dusk p-4">
               <p className="font-pixel text-[14px] text-spark">{a.title}</p>
               <p className="mt-1 text-[17px] font-bold" style={{ color: color(a.winner) }}>
                 {a.winner}
               </p>
               <p className="mt-1 text-[14px] leading-[1.55] text-haze">{a.reason}</p>
+              <ObjectionSlot target={`award:${i}`} owner={a.winner} />
             </li>
           ))}
         </ul>
+      </Section>
+
+      <Section title="이미지 만들기 프롬프트">
+        <ImagePrompts report={report} colorOf={color} />
       </Section>
 
       <Section title="총평">
@@ -230,5 +236,40 @@ function Evidence({ quotes }: { quotes: Quote[] }) {
         ))}
       </ul>
     </details>
+  );
+}
+
+type Member = Report["members"][number];
+
+function BagItem({ member, color }: { member: Member; color: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  return (
+    <div className="flex flex-col gap-2">
+      <BagCard ref={ref} member={member} color={color} />
+      <details className="rounded-[14px] bg-dusk px-4 py-3">
+        <summary className="cursor-pointer text-[13px] font-semibold text-haze">왜 이 물건이?</summary>
+        <ul className="mt-2 flex flex-col gap-1.5 text-[13px] leading-[1.5]">
+          {member.bag.items.map((it, i) => (
+            <li key={i}>
+              <span className="font-semibold">{it.item}</span> <span className="text-haze">{it.reason}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
+      <SaveImageButton target={ref} fileName={`tokbang-bag-${member.name}.png`} className="self-start" label="가방 카드 저장" />
+    </div>
+  );
+}
+
+/** 멤버 카드(1080×1350)는 화면 밖에 그려두고 저장만 한다 */
+function MemberCardSave({ member, color }: { member: Member; color: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  return (
+    <>
+      <div className="pointer-events-none fixed top-0 -left-[10000px] w-[360px]" aria-hidden>
+        <MemberCard ref={ref} member={member} color={color} />
+      </div>
+      <SaveImageButton target={ref} fileName={`tokbang-card-${member.name}.png`} className="self-start" label="멤버 카드 저장" />
+    </>
   );
 }

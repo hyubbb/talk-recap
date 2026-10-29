@@ -47,8 +47,10 @@ const RE_EN_SYS =
   /^([A-Za-z]{3,9}) (\d{1,2}), (\d{4})(?:,| at) (\d{1,2}):(\d{2}) ?(AM|PM)?[:,] (.+)$/;
 // PC 텍스트: --------------- 2026년 7월 19일 일요일 ---------------
 const RE_PC_DATE = /^-{3,} ?(\d{4})년 (\d{1,2})월 (\d{1,2})일.*-{3,}$/;
-// [이름] [오후 5:03] 내용
-const RE_PC_MSG = /^\[(.+?)\] \[(오전|오후|AM|PM) ?(\d{1,2}):(\d{2})\] ([\s\S]*)$/;
+// PC 영문: --------------- Sunday, July 19, 2026 ---------------
+const RE_PC_DATE_EN = /^-{3,} ?(?:[A-Za-z]+, )?([A-Za-z]{3,9}) (\d{1,2}), (\d{4}) ?-{3,}$/;
+// [이름] [오후 5:03] 내용 / [Name] [5:03 PM] text / [이름] [17:03] 내용
+const RE_PC_MSG = /^\[(.+?)\] \[(?:(오전|오후|AM|PM) ?)?(\d{1,2}):(\d{2})(?: ?(AM|PM))?\] ([\s\S]*)$/;
 // 날짜 구분선(모바일): 2026년 7월 19일 일요일 / Sunday, July 19, 2026
 const RE_DAY_DIVIDER =
   /^(\d{4}년 \d{1,2}월 \d{1,2}일 \S+요일|[A-Za-z]+, [A-Za-z]+ \d{1,2}, \d{4})$/;
@@ -108,7 +110,7 @@ function parseCsv(text: string): ParsedChat {
       kind: classifyKind(text),
     });
   }
-  return { format: "csv", title: null, messages, system: [], unparsedLines: unparsed };
+  return { format: "csv", title: null, messages, system: [], unparsedLines: unparsed, unparsedSamples: [] };
 }
 
 /**
@@ -116,7 +118,8 @@ function parseCsv(text: string): ParsedChat {
  * 형식은 줄마다 판별하므로 섞여 있어도 동작한다.
  */
 export function parseKakaoText(raw: string): ParsedChat {
-  const text = raw.replace(/^﻿/, "").replace(/\r\n?/g, "\n");
+  // iOS 영문 설정은 시각과 AM/PM 사이에 좁은 공백(U+202F)을 넣는다
+  const text = raw.replace(/^﻿/, "").replace(/\r\n?/g, "\n").replace(/[\u202f\u00a0]/g, " ");
   const firstLine = text.slice(0, 200).split("\n")[0].trim();
   if (/^"?Date"?,"?User"?,"?Message"?/i.test(firstLine)) return parseCsv(text);
 
@@ -129,6 +132,7 @@ export function parseKakaoText(raw: string): ParsedChat {
   let pcDate: [number, number, number] | null = null;
   let last: ChatMessage | null = null;
   let unparsed = 0;
+  const samples: string[] = [];
 
   const push = (fmt: ExportFormat, ts: number, author: string, body: string) => {
     counts[fmt]++;
@@ -147,12 +151,15 @@ export function parseKakaoText(raw: string): ParsedChat {
     } else if ((m = line.match(RE_KO_MSG))) {
       push("mobile-korean", wallClock(+m[1], +m[2], +m[3], +m[5], +m[6], m[4]), m[7], m[8]);
     } else if ((m = line.match(RE_PC_MSG)) && pcDate) {
-      push("pc-bracket", wallClock(pcDate[0], pcDate[1], pcDate[2], +m[3], +m[4], m[2]), m[1], m[5]);
+      push("pc-bracket", wallClock(pcDate[0], pcDate[1], pcDate[2], +m[3], +m[4], m[2] ?? m[5]), m[1], m[6]);
     } else if ((m = line.match(RE_EN_MSG)) && MONTHS[m[1].slice(0, 3).toLowerCase()]) {
       const mo = MONTHS[m[1].slice(0, 3).toLowerCase()];
       push("english", wallClock(+m[3], mo, +m[2], +m[4], +m[5], m[6]), m[7], m[8]);
     } else if ((m = line.match(RE_PC_DATE))) {
       pcDate = [+m[1], +m[2], +m[3]];
+      last = null;
+    } else if ((m = line.match(RE_PC_DATE_EN)) && MONTHS[m[1].slice(0, 3).toLowerCase()]) {
+      pcDate = [+m[3], MONTHS[m[1].slice(0, 3).toLowerCase()], +m[2]];
       last = null;
     } else if ((m = line.match(RE_DOT_SYS))) {
       sys(wallClock(+m[1], +m[2], +m[3], +m[5], +m[6], m[4] ?? m[7]), m[8]);
@@ -172,6 +179,7 @@ export function parseKakaoText(raw: string): ParsedChat {
     } else if (messages.length || system.length) {
       // 첫 메시지 전의 줄은 파일 헤더(제목, 저장 날짜)로 보고 세지 않는다
       unparsed++;
+      if (samples.length < 3) samples.push(line.slice(0, 200));
     }
   }
 
@@ -185,6 +193,7 @@ export function parseKakaoText(raw: string): ParsedChat {
     messages,
     system,
     unparsedLines: unparsed,
+    unparsedSamples: samples,
   };
 }
 
@@ -227,5 +236,6 @@ export function mergeParsed(parts: ParsedChat[]): ParsedChat {
     messages: ordered,
     system: system.sort((a, b) => a.ts - b.ts),
     unparsedLines: parts.reduce((s, p) => s + p.unparsedLines, 0),
+    unparsedSamples: parts.flatMap((p) => p.unparsedSamples).slice(0, 3),
   };
 }

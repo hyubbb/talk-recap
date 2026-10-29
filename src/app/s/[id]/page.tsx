@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ReportView } from "@/components/report/ReportView";
+import { SharedExperience } from "@/components/share/SharedExperience";
 import { getSharedReport, incrementView } from "@/lib/share/repo";
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ async function Loader({ params }: { params: PageProps<"/s/[id]">["params"] }) {
   const shared = await getSharedReport(id);
   if (!shared) return <Missing />;
   await incrementView(id);
-  return <ReportView saved={shared.saved} shared={{ expiresAt: shared.expiresAt }} />;
+  return <SharedExperience saved={shared.saved} shareId={id} expiresAt={shared.expiresAt} />;
 }
 
 function Missing() {

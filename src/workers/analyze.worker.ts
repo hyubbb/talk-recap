@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { mergeParsed, parseKakaoText, sortSplitFiles } from "@/lib/kakao/parse";
 import { suggestMembers, type MemberGroup } from "@/lib/kakao/members";
 import { computeStats } from "@/lib/kakao/stats";
+import { maskSampleLine } from "@/lib/kakao/formatReport";
 import { chunkMessages } from "@/lib/kakao/chunk";
 import type { ChatMessage, ExportFormat } from "@/lib/kakao/types";
 import type { DateRange, WorkerRequest, WorkerResponse } from "./protocol";
@@ -70,6 +71,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
           messageCount: merged.messages.length,
           systemCount: merged.system.length,
           unparsedLines: merged.unparsedLines,
+          unparsedSamples: merged.unparsedSamples.map((l) => maskSampleLine(l, groups.flatMap((g) => g.names))),
           firstTs: merged.messages[0].ts,
           lastTs: merged.messages[merged.messages.length - 1].ts,
         },

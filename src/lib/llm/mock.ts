@@ -38,6 +38,8 @@ export function mockChunkNotes(chunkText: string, members: string[]): ChunkNotes
   };
 }
 
+const MOCK_BAG = ["휴대폰", "무선 이어폰", "보조배터리", "컵라면", "접이식 우산", "텀블러", "다이어리", "립밤", "물티슈", "정체불명의 영수증", "운동화"];
+
 const TYPES = ["ENFP", "INFJ", "INFP", "ISFJ", "ISTP", "ESTJ", "ENTP", "ISFP"];
 
 export function mockReport(notes: ChunkNotes[], members: string[]): Report {
@@ -64,7 +66,10 @@ export function mockReport(notes: ChunkNotes[], members: string[]): Report {
         tf: { letter: TYPES[i % TYPES.length][2], reason: "(목업)" },
         jp: { letter: TYPES[i % TYPES.length][3], reason: "(목업)" },
       },
-      bag: { bag: "(목업) 백팩", items: [{ item: "휴대폰", reason: "(목업)" }, { item: "이어폰", reason: "(목업)" }] },
+      bag: {
+        bag: "(목업) 백팩",
+        items: MOCK_BAG.slice(i % 3, (i % 3) + 8).map((item) => ({ item, reason: "(목업)" })),
+      },
     })),
     pairs:
       members.length > 1
