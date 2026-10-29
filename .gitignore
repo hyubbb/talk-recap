@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 실제 카카오톡 대화 파일은 절대 커밋하지 않는다 (가짜 샘플만 fixtures/에 둔다)
+*.zip
+Talk_*.txt
+KakaoTalk*.txt
+KakaoTalk*.csv
+/private/
