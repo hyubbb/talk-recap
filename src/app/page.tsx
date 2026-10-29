@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ExportGuide } from "@/components/ExportGuide";
+import { FeatureCarousel } from "@/components/FeatureCarousel";
 import { HeroChat } from "@/components/HeroChat";
 
 export default function Home() {
@@ -24,6 +25,7 @@ export default function Home() {
         </p>
 
         <HeroChat />
+        <FeatureCarousel />
 
         <Link
           href="/new"
