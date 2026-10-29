@@ -11,6 +11,7 @@ export function SaveImageButton({
   height = 1350,
   label = "이미지 저장",
   className = "",
+  footer = false,
 }: {
   target: RefObject<HTMLElement | null>;
   fileName: string;
@@ -18,13 +19,15 @@ export function SaveImageButton({
   height?: number;
   label?: string;
   className?: string;
+  /** 저장 이미지 아래에 로고 띠 붙이기 */
+  footer?: boolean;
 }) {
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const run = async () => {
     if (!target.current) return;
     setState("busy");
     try {
-      await saveNodeAsPng(target.current, { width, height, fileName });
+      await saveNodeAsPng(target.current, { width, height, fileName, footer });
       setState("done");
       setTimeout(() => setState("idle"), 1500);
     } catch {
@@ -47,7 +50,11 @@ export function SaveImageButton({
 /** 카드·슬라이드 구석 워터마크 */
 export function Watermark({ ink }: { ink: string }) {
   return (
-    <span className="font-pixel pointer-events-none absolute right-[5%] bottom-[3%] text-[11px] opacity-70" style={{ color: ink }}>
+    <span
+      data-watermark
+      className="font-pixel pointer-events-none absolute right-[5%] bottom-[3%] text-[11px] opacity-70"
+      style={{ color: ink }}
+    >
       톡방 Wrapped
     </span>
   );

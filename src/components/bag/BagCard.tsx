@@ -4,13 +4,12 @@ import { forwardRef } from "react";
 import type { Report } from "@/lib/llm/schema";
 import { inkOn } from "@/lib/story/slides";
 import { ItemIcon } from "./PixelIcon";
-import { Watermark } from "@/components/cards/SaveImageButton";
 
 type Member = Report["members"][number];
 
 const clean = (s: string) => s.replace(/\(목업\)\s*/g, "").trim();
 
-/** What's in my bag 픽셀 카드 (4:5, 1080×1350으로 저장) */
+/** What's in my bag 픽셀 카드 (4:5, 1080×1350으로 저장). 로고는 화면에 없고 저장할 때만 아래 띠로 붙는다 */
 export const BagCard = forwardRef<HTMLDivElement, { member: Member; color: string }>(function BagCard({ member, color }, ref) {
   const ink = inkOn(color);
   const items = member.bag.items.slice(0, 10);
@@ -37,7 +36,6 @@ export const BagCard = forwardRef<HTMLDivElement, { member: Member; color: strin
           </li>
         ))}
       </ul>
-      <Watermark ink={ink} />
     </div>
   );
 });

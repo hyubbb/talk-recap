@@ -198,10 +198,9 @@ export function ReportView({ saved, shared, actions }: Props) {
         <p className="text-[17px] leading-[1.7]">{report.closing}</p>
       </Section>
 
-      <p className="mt-12 text-[12px] leading-[1.6] text-haze">
-        분석 {saved.provider === "mock" ? "목업" : "OpenAI"} · 토큰 입력 {saved.usage.input.toLocaleString()} / 출력{" "}
-        {saved.usage.output.toLocaleString()} · 원문과 맞지 않아 뺀 인용 {saved.droppedQuotes}개. MBTI·궁합·가방은 대화로
-        추론한 놀이용 결과예요.
+      <p className="mt-12 rounded-[14px] bg-dusk px-4 py-3 text-[13px] leading-[1.6] text-haze">
+        MBTI·궁합·가방은 AI가 대화만 훔쳐보고 찍은 놀이용 결과예요. 맞으면 &ldquo;소름&rdquo;, 틀리면 &ldquo;역시
+        AI&rdquo; 하고 웃어 넘겨 주세요. 진지하게 받아들이면 단톡방에 평화가 사라져요.
       </p>
     </main>
   );
@@ -259,7 +258,7 @@ function BagItem({ member, color }: { member: Member; color: string }) {
           ))}
         </ul>
       </details>
-      <SaveImageButton target={ref} fileName={`tokbang-bag-${member.name}.png`} className="self-start" label="가방 카드 저장" />
+      <SaveImageButton target={ref} fileName={`tokbang-bag-${member.name}.png`} className="self-start" label="가방 카드 저장" footer />
     </div>
   );
 }
