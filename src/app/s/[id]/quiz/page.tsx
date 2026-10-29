@@ -5,7 +5,7 @@ import { QuizRunner } from "@/components/quiz/QuizRunner";
 import { getSharedReport } from "@/lib/share/repo";
 
 export const metadata: Metadata = {
-  title: "이 말 누가 했게? · 톡방 Wrapped",
+  title: "이 말 누가 했게? · Talk Recap",
   robots: { index: false, follow: false },
 };
 

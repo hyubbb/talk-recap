@@ -55,7 +55,7 @@ export default function NewPage() {
     <main className="mx-auto flex w-full max-w-[560px] flex-col px-5 pb-48">
       <header className="flex items-center justify-between py-5">
         <Link href="/" className="font-pixel text-[15px]">
-          톡방 Wrapped
+          Talk Recap
         </Link>
       </header>
 

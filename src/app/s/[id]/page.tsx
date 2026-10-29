@@ -5,7 +5,7 @@ import { SharedExperience } from "@/components/share/SharedExperience";
 import { getSharedReport, incrementView } from "@/lib/share/repo";
 
 export const metadata: Metadata = {
-  title: "톡방 Wrapped",
+  title: "Talk Recap",
   robots: { index: false, follow: false },
 };
 

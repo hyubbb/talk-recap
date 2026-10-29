@@ -46,7 +46,7 @@ export async function saveNodeAsPng(
 
   if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] }) && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
     try {
-      await navigator.share({ files: [file], title: "톡방 Wrapped" });
+      await navigator.share({ files: [file], title: "Talk Recap" });
       return "shared";
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") return "shared";
@@ -108,7 +108,7 @@ function withFooter(node: HTMLElement, width: number, height: number): HTMLEleme
     color: "var(--color-moon)",
   } satisfies Partial<CSSStyleDeclaration>);
   const logo = document.createElement("span");
-  logo.textContent = "톡방 Wrapped";
+  logo.textContent = "Talk Recap";
   Object.assign(logo.style, { fontFamily: "var(--font-pixel)", fontSize: `${Math.round(footerH * 0.36)}px` });
   const dot = document.createElement("span");
   dot.textContent = "우리 방도 분석해 보기";

@@ -22,7 +22,7 @@ export function PickMe({ saved, onDone }: { saved: SavedReport; onDone: (name: s
   if (!member) {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-[560px] flex-col px-5 py-10">
-        <p className="font-pixel text-[15px] text-spark">톡방 Wrapped</p>
+        <p className="font-pixel text-[15px] text-spark">Talk Recap</p>
         <h1 className="mt-3 text-[28px] leading-[1.25] font-extrabold tracking-[-0.03em]">{saved.report.title}</h1>
         <p className="mt-6 text-[20px] font-bold">나는 누구?</p>
         <p className="mt-1 text-[14px] text-haze">내 이름을 고르면 내 카드부터 보여줘요. 이 브라우저에만 기억해요.</p>

@@ -5,7 +5,7 @@ import { useState } from "react";
 /** 해석 못 한 줄이 많을 때: 문제 줄 3개(이름·내용 가림)를 복사해서 제보하게 한다 */
 export function FormatReport({ samples, unparsed }: { samples: string[]; unparsed: number }) {
   const [copied, setCopied] = useState(false);
-  const text = ["[톡방 Wrapped 형식 제보]", `해석 못 한 줄: ${unparsed}개`, ...samples.map((s, i) => `${i + 1}) ${s}`)].join("\n");
+  const text = ["[Talk Recap 형식 제보]", `해석 못 한 줄: ${unparsed}개`, ...samples.map((s, i) => `${i + 1}) ${s}`)].join("\n");
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text);

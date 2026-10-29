@@ -3,7 +3,7 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "톡방 Wrapped",
+  title: "Talk Recap",
   description: "카카오톡 단톡방을 올리면 멤버 분석, 관계, MBTI 추론, What's in my bag까지 한 번에.",
 };
 

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getSharedReport } from "@/lib/share/repo";
 
-export const alt = "톡방 Wrapped 결과 미리보기";
+export const alt = "Talk Recap 결과 미리보기";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -29,7 +29,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     getSharedReport(id),
   ]);
 
-  const title = shared?.saved.report.title ?? "톡방 Wrapped";
+  const title = shared?.saved.report.title ?? "Talk Recap";
   const stats = shared?.saved.stats;
   const colors = (shared?.saved.members ?? []).slice(0, 12).map((m) => m.color);
   const sub = stats
@@ -51,7 +51,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           fontFamily: "Pretendard",
         }}
       >
-        <div style={{ display: "flex", fontSize: 30, color: SPARK, fontWeight: 800 }}>톡방 Wrapped</div>
+        <div style={{ display: "flex", fontSize: 30, color: SPARK, fontWeight: 800 }}>Talk Recap</div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div
             style={{

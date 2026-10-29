@@ -1,4 +1,4 @@
-# 톡방 Wrapped
+# Talk Recap
 
 > 에이전트로 작업한다면 [`AGENTS.md`](AGENTS.md)부터 읽기. 문서: [PRD](docs/PRD.md) · [남은 작업](docs/TASKS.md) · [설정](docs/SETUP.md) · [구조](docs/ARCHITECTURE.md)
 

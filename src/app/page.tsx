@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-[560px] flex-col px-5 pb-24">
       <header className="flex items-center justify-between py-5">
-        <span className="font-pixel text-[15px] text-moon">톡방 Wrapped</span>
+        <span className="font-pixel text-[15px] text-moon">Talk Recap</span>
         <Link href="/new" className="text-[14px] text-haze hover:text-moon">
           대화 올리기
         </Link>

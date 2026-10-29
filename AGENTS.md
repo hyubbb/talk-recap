@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# 톡방 Wrapped — 에이전트 작업 규칙
+# Talk Recap — 에이전트 작업 규칙
 
 카카오톡 단톡방 내보내기 파일을 올리면 멤버 분석, 관계·궁합, MBTI 추론, What's in my bag을 보여주는 서비스.
 작업 전에 아래 문서를 먼저 읽는다.

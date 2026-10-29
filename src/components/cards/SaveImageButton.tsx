@@ -55,7 +55,7 @@ export function Watermark({ ink }: { ink: string }) {
       className="font-pixel pointer-events-none absolute right-[5%] bottom-[3%] text-[11px] opacity-70"
       style={{ color: ink }}
     >
-      톡방 Wrapped
+      Talk Recap
     </span>
   );
 }
