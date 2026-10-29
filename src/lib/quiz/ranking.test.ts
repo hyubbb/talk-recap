@@ -31,9 +31,11 @@ describe("퀴즈 결과 목록", () => {
     expect(bestPerNickname([row("Gana", 10, "a"), row("gana", 20, "b")])).toHaveLength(1);
   });
 
-  it("개수가 있으면 'N개 중 M개', 없으면(마이그레이션 전 기록) 점수", () => {
-    expect(resultLabel({ score: 80, correct: 8, total: 10 })).toBe("10개 중 8개");
-    expect(resultLabel({ score: 80, correct: null, total: null })).toBe("80점");
+  it("개수 기록이 있든 없든 점수로 표시", () => {
+    const withCounts: RankRow = { nickname: "도토리", memberName: null, score: 80, correct: 8, total: 10, createdAt: "" };
+    const legacy: RankRow = { ...withCounts, correct: null, total: null };
+    expect(resultLabel(withCounts)).toBe("80점");
+    expect(resultLabel(legacy)).toBe("80점");
   });
 
   it("이름 정리: 공백 정리, 20자 제한", () => {

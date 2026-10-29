@@ -31,7 +31,7 @@ export function bestPerNickname(rows: RankRow[], limit = 20): RankRow[] {
     .slice(0, limit);
 }
 
-/** "8/10개" 또는 (개수 기록이 없으면) "80점" */
-export function resultLabel(r: Pick<RankRow, "score" | "correct" | "total">): string {
-  return r.correct !== null && r.total !== null ? `${r.total}개 중 ${r.correct}개` : `${r.score}점`;
+/** 순위표 표기: 항상 "80점". 개수(correct/total)는 저장만 하고 표시는 점수로 통일한다 (예전 기록도 score는 있어서 그대로 보인다) */
+export function resultLabel(r: Pick<RankRow, "score">): string {
+  return `${r.score}점`;
 }

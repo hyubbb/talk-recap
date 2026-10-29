@@ -174,9 +174,11 @@ export function QuizRunner({ saved, shareId }: { saved: SavedReport; shareId: st
           <p className="font-pixel text-[14px]">이 말 누가 했게?</p>
           <p className="mt-3 text-[16px] font-semibold">{cleanName}님은</p>
           <p className="tabular mt-1 text-[52px] leading-none font-black tracking-[-0.03em]">
-            {questions.length}개 중 {correct}개
+            {score}점
           </p>
-          <p className="mt-2 text-[16px] font-semibold">맞혔어요 · {score}점</p>
+          <p className="mt-2 text-[16px] font-semibold">
+            {questions.length}문제 중 {correct}문제 맞혔어요
+          </p>
           {selfHits > 0 && (
             <p className="font-pixel mt-3 inline-block rounded-full bg-night px-3 py-1 text-[12px] text-spark">
               자기 말 맞히기 ×{selfHits}
@@ -186,7 +188,7 @@ export function QuizRunner({ saved, shareId }: { saved: SavedReport; shareId: st
 
         {shareId ? (
           <section className="mt-8">
-            <h2 className="text-[20px] font-bold">누가 몇 개 맞혔나</h2>
+            <h2 className="text-[20px] font-bold">누가 몇 점 받았나</h2>
             {save.isPending && <p className="mt-3 text-[14px] text-haze">결과 올리는 중…</p>}
             {save.error && (
               <div className="mt-3 flex items-center gap-3">
@@ -220,7 +222,7 @@ export function QuizRunner({ saved, shareId }: { saved: SavedReport; shareId: st
           </section>
         ) : (
           <p className="mt-6 text-[14px] leading-[1.6] text-haze">
-            미리 풀기라 결과는 저장되지 않았어요. 공유 링크를 만들어 방에 보내면 다른 사람들이 몇 개 맞혔는지 볼 수 있어요.
+            미리 풀기라 결과는 저장되지 않았어요. 공유 링크를 만들어 방에 보내면 다른 사람들이 몇 점 받았는지 볼 수 있어요.
           </p>
         )}
 
