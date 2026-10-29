@@ -130,7 +130,8 @@ export default function NewPage() {
           <h2 className="mt-10 mb-4 text-[20px] font-bold">미리 보기</h2>
           <StatsPreview />
 
-          <div className="fixed inset-x-0 bottom-0 bg-gradient-to-t from-night via-night to-transparent pt-8 pb-5">
+          <div data-fixed-cta className="fixed inset-x-0 bottom-0 bg-gradient-to-t from-night via-night to-transparent pt-8">
+            <div className="bg-night pb-5">
             <div className="mx-auto max-w-[560px] px-5">
               <label className="mb-3 flex items-start gap-2 text-[13px] leading-[1.5] text-haze">
                 <input
@@ -155,6 +156,7 @@ export default function NewPage() {
               >
                 {running ? "분석하는 중…" : analysis.kind === "error" ? "다시 분석하기" : "AI 분석 시작"}
               </button>
+            </div>
             </div>
           </div>
         </>
