@@ -211,8 +211,9 @@ export function mergeParsed(parts: ParsedChat[]): ParsedChat {
       const tail = messages.slice(messages.length - k);
       if (tail.every((t, i) => same(t, p.messages[i]))) { overlap = k; break; }
     }
-    messages.push(...p.messages.slice(overlap));
-    system.push(...p.system);
+    // push(...arr)는 수십만 개에서 콜스택 한도를 넘으므로 반복문으로 넣는다
+    for (let i = overlap; i < p.messages.length; i++) messages.push(p.messages[i]);
+    for (const s of p.system) system.push(s);
   }
   // 파일 순서가 뒤섞여 있어도 안정적으로 시간순 정렬
   const ordered = messages

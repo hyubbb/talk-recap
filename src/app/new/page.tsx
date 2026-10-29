@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useStore } from "jotai";
 import { useRef } from "react";
 import { Dropzone } from "@/components/upload/Dropzone";
 import { MemberEditor } from "@/components/upload/MemberEditor";
+import { RangePicker } from "@/components/upload/RangePicker";
 import { StatsPreview } from "@/components/upload/StatsPreview";
 import { useAnalyzeWorker } from "@/hooks/useAnalyzeWorker";
-import { consentAtom, metaAtom, phaseAtom } from "@/state/upload";
+import { aliasesAtom, consentAtom, groupsAtom, metaAtom, phaseAtom, rangeAtom } from "@/state/upload";
 import type { MemberGroup } from "@/lib/kakao/members";
+import type { DateRange } from "@/workers/protocol";
 
 const STEP_LABEL = { reading: "파일 여는 중", parsing: "메시지 읽는 중", stats: "통계 내는 중" } as const;
 
@@ -17,12 +19,18 @@ export default function NewPage() {
   const meta = useAtomValue(metaAtom);
   const [consent, setConsent] = useAtom(consentAtom);
   const { parse, recompute } = useAnalyzeWorker();
+  const store = useStore();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const onMembersChange = (groups: MemberGroup[], aliases: Record<string, string[]>) => {
+  // 멤버·별명·기간 중 무엇이 바뀌든 최신 값 셋을 모아 한 번만 다시 계산한다
+  const schedule = (groups: MemberGroup[], aliases: Record<string, string[]>, range: DateRange | null) => {
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => recompute(groups, aliases), 250);
+    timer.current = setTimeout(() => recompute(groups, aliases, range), 250);
   };
+  const onMembersChange = (groups: MemberGroup[], aliases: Record<string, string[]>) =>
+    schedule(groups, aliases, store.get(rangeAtom));
+  const onRangeChange = (range: DateRange | null) =>
+    schedule(store.get(groupsAtom), store.get(aliasesAtom), range);
 
   return (
     <main className="mx-auto flex w-full max-w-[560px] flex-col px-5 pb-48">
@@ -58,6 +66,12 @@ export default function NewPage() {
             파일 {meta.files.length}개 · 메시지 {meta.messageCount.toLocaleString()}개 읽음
             {meta.unparsedLines > 0 && ` · 해석 못 한 줄 ${meta.unparsedLines}개`}
           </p>
+
+          <h2 className="mt-10 text-[20px] font-bold">분석할 기간</h2>
+          <p className="mt-1 mb-4 text-[14px] leading-[1.55] text-haze">
+            올린 대화 중 일부 기간만 골라서 분석할 수 있어요.
+          </p>
+          <RangePicker onChange={onRangeChange} />
 
           <h2 className="mt-10 text-[20px] font-bold">멤버 확인</h2>
           <p className="mt-1 mb-4 text-[14px] leading-[1.55] text-haze">

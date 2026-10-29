@@ -104,6 +104,13 @@ describe("분할 파일", () => {
     expect(sorted.map((f) => f.name)).toEqual(["Talk-1.txt", "Talk-2.txt", "Talk-10.txt"]);
   });
 
+  it("메시지 20만 개도 콜스택 에러 없이 합침 (CSV 단일 파일)", () => {
+    const rows = ["Date,User,Message"];
+    for (let i = 0; i < 200_000; i++) rows.push(`2025-01-01 09:00:00,"가나다","메시지 ${i}"`);
+    const m = mergeParsed([parseKakaoText(rows.join("\n"))]);
+    expect(m.messages).toHaveLength(200_000);
+  });
+
   it("경계 중복을 지우고 시간순으로 합침", () => {
     const a = parseKakaoText("2026. 7. 19. 오후 5:03, 가나다 : 하나\n2026. 7. 19. 오후 5:04, 가나다 : 둘\n");
     const b = parseKakaoText("2026. 7. 19. 오후 5:04, 가나다 : 둘\n2026. 7. 19. 오후 5:05, 라마바 : 셋\n");

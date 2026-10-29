@@ -5,7 +5,7 @@ import { suggestMembers, type MemberGroup } from "@/lib/kakao/members";
 import { computeStats } from "@/lib/kakao/stats";
 import { chunkMessages } from "@/lib/kakao/chunk";
 import type { ChatMessage, ExportFormat } from "@/lib/kakao/types";
-import type { WorkerRequest, WorkerResponse } from "./protocol";
+import type { DateRange, WorkerRequest, WorkerResponse } from "./protocol";
 
 // 원문 메시지는 이 워커 메모리 안에만 둔다. 메인 스레드와 서버로는 통계만 나간다.
 let messages: ChatMessage[] = [];
@@ -28,13 +28,23 @@ async function readFiles(files: File[]): Promise<{ name: string; text: string }[
   return out;
 }
 
-function summarize(groups: MemberGroup[], aliases: Record<string, string[]>) {
-  const stats = computeStats(messages, groups, aliases);
+function inRange(range: DateRange | null): ChatMessage[] {
+  if (!range) return messages;
+  return messages.filter((m) => m.ts >= range.from && m.ts <= range.to);
+}
+
+function summarize(groups: MemberGroup[], aliases: Record<string, string[]>, range: DateRange | null = null) {
+  const picked = inRange(range);
+  const stats = computeStats(picked, groups, aliases);
   const include = new Set(groups.filter((g) => !g.isBot).flatMap((g) => g.names));
   const nameOf = new Map(groups.flatMap((g) => g.names.map((n) => [n, g.displayName] as const)));
-  const chunks = chunkMessages(messages, (a) => (include.has(a) ? nameOf.get(a) ?? a : null));
+  const chunks = chunkMessages(picked, (a) => (include.has(a) ? nameOf.get(a) ?? a : null));
   // 구간 원문은 분석 요청 단계에서만 꺼낸다. 지금은 크기 정보만 넘긴다.
-  return { stats, chunks: chunks.map((c) => ({ index: c.index, start: c.start, end: c.end, lines: c.lines, bytes: c.bytes })) };
+  return {
+    stats,
+    rangeCount: picked.length,
+    chunks: chunks.map((c) => ({ index: c.index, start: c.start, end: c.end, lines: c.lines, bytes: c.bytes })),
+  };
 }
 
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
@@ -50,6 +60,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       messages = merged.messages;
       const groups = suggestMembers(messages);
       post({ type: "progress", step: "stats" });
+      const first = summarize(groups, req.aliases ?? {});
       post({
         type: "parsed",
         meta: {
@@ -59,12 +70,15 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
           messageCount: merged.messages.length,
           systemCount: merged.system.length,
           unparsedLines: merged.unparsedLines,
+          firstTs: merged.messages[0].ts,
+          lastTs: merged.messages[merged.messages.length - 1].ts,
         },
         groups,
-        ...summarize(groups, req.aliases ?? {}),
+        stats: first.stats,
+        chunks: first.chunks,
       });
     } else if (req.type === "recompute") {
-      post({ type: "recomputed", ...summarize(req.groups, req.aliases) });
+      post({ type: "recomputed", ...summarize(req.groups, req.aliases, req.range) });
     }
   } catch (err) {
     post({ type: "error", message: err instanceof Error ? err.message : String(err) });
