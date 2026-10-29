@@ -18,7 +18,8 @@ import { useRunAnalysis } from "@/hooks/useRunAnalysis";
 import { analysisAtom } from "@/state/analysis";
 import { aliasesAtom, consentAtom, groupsAtom, metaAtom, phaseAtom, rangeAtom } from "@/state/upload";
 import { useSetAtom } from "jotai";
-import { priceLabel, productForDays, spanDays } from "@/lib/legal/business";
+import { productForDays, spanDays } from "@/lib/legal/business";
+import { PayConfirm } from "@/components/pay/PayConfirm";
 import { clearPending, loadPending, savePending } from "@/lib/pay/pending";
 import type { PaidOrder } from "@/hooks/useRunAnalysis";
 import { statsAtom } from "@/state/upload";
@@ -52,7 +53,7 @@ export default function NewPage() {
   // 실패 후 다시 시도는 같은 결제로 (결제 후 3시간 안)
   const lastOrder = useRef<PaidOrder>(null);
   const [payMode, setPayMode] = useState(PAYMENT_REQUIRED);
-  const [agreed, setAgreed] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [payBusy, setPayBusy] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const resumeRef = useRef<{ order: PaidOrder; groups: MemberGroup[]; range: DateRange | null; aliases: Record<string, string[]> } | null>(null);
@@ -83,7 +84,6 @@ export default function NewPage() {
         if (!p) return setPayError("결제한 대화를 이 브라우저에서 찾지 못했어요. 결제가 됐다면 고객센터로 주문번호를 보내 주세요.");
         setPayMode(true);
         setConsent(true);
-        setAgreed(true);
         resumeRef.current = { order: { orderNo: p.orderNo, secret: p.secret }, groups: p.groups, range: p.range, aliases: p.aliases };
         filesRef.current = p.files;
         setAliases(p.aliases);
@@ -123,9 +123,19 @@ export default function NewPage() {
     };
   }, [phase, store, setGroups, setRange, recompute, run]);
 
-  const start = async () => {
+  // AI 분석 시작: 무료면 바로, 결제 모드면 기간·요금 확인 창을 띄운다
+  const start = () => {
     setPayError(null);
     if (!payMode) return run.mutate(null);
+    setConfirmOpen(true);
+  };
+  const changeRange = () => {
+    setConfirmOpen(false);
+    document.getElementById("range")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const pay = async () => {
+    setPayError(null);
     if (!product) return;
     setPayBusy(true);
     try {
@@ -150,7 +160,6 @@ export default function NewPage() {
       setPayBusy(false);
     }
   };
-  const blocked = payMode && (!product || !agreed || payBusy);
   // 버튼을 누른 직후(구간 준비)부터 결과 페이지로 넘어갈 때까지 진행 중으로 본다
   const running = run.isPending || analysis.kind === "running" || analysis.kind === "done";
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -211,7 +220,7 @@ export default function NewPage() {
             <FormatReport samples={meta.unparsedSamples} unparsed={meta.unparsedLines} />
           )}
 
-          <h2 className="mt-10 text-[20px] font-bold">분석할 기간</h2>
+          <h2 id="range" className="mt-10 scroll-mt-4 text-[20px] font-bold">분석할 기간</h2>
           <p className="mt-1 mb-4 text-[14px] leading-[1.55] text-haze">
             올린 대화 중 일부 기간만 골라서 분석할 수 있어요.
           </p>
@@ -238,61 +247,31 @@ export default function NewPage() {
                 />
                 방 멤버들에게 이 대화를 분석에 쓴다고 알렸고, 동의를 받았어요.
               </label>
-              {payMode && (
-                <div className="mb-3 text-[13px] leading-[1.5] text-haze">
-                  {product ? (
-                    <p>
-                      분석 기간 {days}일 · <b className="text-moon">{priceLabel(product)}</b> 토스페이 결제 · 결제하면 바로 분석이 시작돼요.{" "}
-                      <Link href="/pricing" className="underline">
-                        요금
-                      </Link>
-                    </p>
-                  ) : (
-                    <p className="text-danger">최대 1년까지 분석할 수 있어요. 분석할 기간을 1년 이하로 골라 주세요.</p>
-                  )}
-                  <label className="mt-2 flex items-start gap-2">
-                    <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-4 accent-spark" />
-                    <span>
-                      분석이 시작되면 디지털 콘텐츠 특성상 청약철회가 제한되는 것을 확인했고{" "}
-                      <Link href="/terms" className="underline">
-                        이용약관
-                      </Link>
-                      ·
-                      <Link href="/refund" className="underline">
-                        환불 정책
-                      </Link>
-                      에 동의해요. (필수)
-                    </span>
-                  </label>
-                </div>
-              )}
-              {payError && (
-                <p className="mb-2 text-[13px] text-danger" role="alert">
-                  {payError}
-                </p>
-              )}
               <button
                 type="button"
-                disabled={!consent || running || blocked}
+                disabled={!consent || running}
                 onClick={start}
-                className={`h-14 w-full rounded-[16px] text-[17px] font-bold disabled:opacity-40 ${payMode ? "bg-[#0064FF] text-white" : "bg-spark text-spark-ink"}`}
+                className="h-14 w-full rounded-[16px] bg-spark text-[17px] font-bold text-spark-ink disabled:opacity-40"
               >
-                {running
-                  ? "분석하는 중…"
-                  : payBusy
-                    ? "결제창 여는 중…"
-                    : payMode && product
-                      ? `${product.price}원 결제하고 분석 시작`
-                      : payMode
-                        ? "기간을 1년 이하로 골라 주세요"
-                      : analysis.kind === "error"
-                        ? "다시 분석하기"
-                        : "AI 분석 시작"}
+                {running ? "분석하는 중…" : analysis.kind === "error" ? "다시 분석하기" : "AI 분석 시작"}
               </button>
             </div>
             </div>
           </div>
         </>
+      )}
+      {span && (
+        <PayConfirm
+          open={confirmOpen}
+          days={days}
+          from={span.from}
+          to={span.to}
+          busy={payBusy}
+          error={payError}
+          onPay={pay}
+          onClose={() => !payBusy && setConfirmOpen(false)}
+          onChangeRange={changeRange}
+        />
       )}
       <AnalysisOverlay pending={run.isPending} onRetry={() => run.mutate(lastOrder.current)} />
     </main>

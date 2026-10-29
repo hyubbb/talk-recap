@@ -3,7 +3,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { chunksAtom, metaAtom, rangeAtom, rangeCountAtom } from "@/state/upload";
 import type { DateRange } from "@/workers/protocol";
-import { priceLabel, productForDays, spanDays } from "@/lib/legal/business";
+import { spanDays } from "@/lib/legal/business";
 
 const DAY = 86_400_000;
 const toInput = (ts: number) => new Date(ts).toISOString().slice(0, 10);
@@ -13,7 +13,7 @@ const fmt = (ts: number) => {
   return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}`;
 };
 
-// 요금제 기간에 맞춘 빠른 선택 (최근 100일 = 900원, 최근 1년 = 1500원)
+// 빠른 선택 (요금제 기간과 같은 단위). 요금은 분석 시작을 누를 때 따로 보여준다
 const PRESETS = [
   { label: "최근 100일", days: 100 },
   { label: "최근 1년", days: 365 },
@@ -32,7 +32,6 @@ export function RangePicker({ onChange }: { onChange: (range: DateRange | null) 
   const totalDays = Math.round((last + 1 - first) / DAY);
   const cur = range ?? { from: first, to: last };
   const curDays = spanDays(cur.from, cur.to);
-  const product = productForDays(curDays);
 
   const apply = (next: DateRange | null) => {
     const full = !next || (next.from <= first && next.to >= last);
@@ -56,12 +55,12 @@ export function RangePicker({ onChange }: { onChange: (range: DateRange | null) 
         {/* 대화가 100일 이하면 최근 1년은 최근 100일과 같으므로 숨긴다 */}
         {PRESETS.filter((p, i) => i === 0 || totalDays > PRESETS[i - 1].days).map((p) => (
           <Chip key={p.days} active={isPreset(p.days)} onClick={() => preset(p.days)}>
-            {p.label} · {priceLabel(productForDays(p.days)!)}
+            {p.label}
           </Chip>
         ))}
         {totalDays > 100 && (
           <Chip active={range === null && !PRESETS.some((p) => p.days >= totalDays)} onClick={() => apply(null)}>
-            전체 {totalDays.toLocaleString()}일
+            전체
           </Chip>
         )}
       </div>
@@ -96,14 +95,6 @@ export function RangePicker({ onChange }: { onChange: (range: DateRange | null) 
         분석할 기간: <b className="tabular">{curDays.toLocaleString()}일</b>, 메시지{" "}
         <b className="tabular">{(rangeCount ?? meta.messageCount).toLocaleString()}개</b>
         <span className="text-haze"> · AI 분석 구간 {chunks.length}개</span>
-      </p>
-      <p className="mt-1 text-[14px]" aria-live="polite">
-        요금:{" "}
-        {product ? (
-          <b className="text-spark">{priceLabel(product)}</b>
-        ) : (
-          <span className="text-danger">1년을 넘는 기간은 분석할 수 없어요. 최근 1년 이하로 골라 주세요.</span>
-        )}
       </p>
       {chunks.length > 20 && (
         <p className="mt-1 text-[13px] text-haze">
