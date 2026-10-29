@@ -16,8 +16,11 @@
        구간 노트 + 통계 요약 POST ─────────→ /api/analyze/synthesize ─────→ OpenAI
                                               (노트에 없던 인용 제거)
   └─ 결과를 localStorage에 저장 → /r/[id]
-  └─ (예정) 공유: POST /api/share ─────────→ Supabase reports 테이블
-                                              /s/[id] 에서 서버가 읽어 렌더
+  └─ 공유: POST /api/share ────────────────→ Supabase reports 테이블 (Zod 검증, 500KB 상한)
+       삭제 토큰은 localStorage에만,           DB엔 토큰 sha256 해시만
+       DELETE /api/share/[id] (x-delete-token)
+  └─ /s/[id] 에서 서버가 읽어 렌더, opengraph-image로 미리보기
+  └─ Vercel Cron → /api/cron/ping (CRON_SECRET) → Supabase 핑
 ```
 
 ## 디렉터리
@@ -30,7 +33,11 @@
 | `src/lib/report/` | 종합 단계용 통계 요약(`digest.ts`), 결과 저장(`storage.ts`, 지금은 localStorage) |
 | `src/app/api/analyze/` | 구간 분석·종합 API |
 | `src/app/new/` | 업로드·기간 선택·멤버 확인·분석 진행 화면 |
-| `src/app/r/[id]/` | 결과 화면 (브라우저 저장본) |
+| `src/app/r/[id]/` | 결과 화면 (브라우저 저장본) + 공유 링크 만들기 |
+| `src/app/s/[id]/` | 공유 결과 화면, 카톡 미리보기 이미지 |
+| `src/app/api/share/` | 공유 생성·삭제 API |
+| `src/lib/share/` | 슬러그·삭제 토큰(`token.ts`), 본문 스키마(`schema.ts`), 읽기(`repo.ts`, server-only) |
+| `src/lib/supabase/` | 서버 전용 Supabase 클라이언트 |
 | `src/components/` | `upload/`, `analysis/`, `report/` 화면 조각 |
 | `src/state/` | Jotai atom (`upload.ts`, `analysis.ts`) |
 | `src/hooks/` | 워커 연결(`useAnalyzeWorker`), 분석 실행(`useRunAnalysis`, TanStack mutation) |

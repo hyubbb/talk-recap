@@ -10,6 +10,7 @@
 | `OPENAI_SYNTH_MODEL` | 직접 | 아니오 | 종합(1번 호출). 좋은 모델. 기본 `gpt-4.1` |
 | `SUPABASE_URL` | Supabase > Project Settings > API | 공유 기능 | `https://xxxx.supabase.co` |
 | `SUPABASE_SECRET_KEY` | Supabase > Project Settings > API Keys | 공유 기능 | `sb_secret_...` 또는 예전 `service_role` 키. **서버 전용, `NEXT_PUBLIC_` 붙이지 않기** |
+| `CRON_SECRET` | 직접(임의 문자열 32자 이상) | 배포 시 | `vercel.json` 크론이 하루 1번 `/api/cron/ping`을 불러 Supabase 일시중지를 막는다. Vercel이 `Authorization: Bearer` 헤더로 보낸다 |
 
 로컬: `cp .env.example .env.local` 후 값 채우기. `.env*`는 `.gitignore`로 막혀 있다(`.env.example`만 예외).
 키는 채팅·이슈·커밋에 붙여넣지 않는다. 노출됐으면 바로 폐기하고 새로 발급한다.

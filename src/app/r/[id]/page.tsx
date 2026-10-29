@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ReportLoader } from "@/components/report/ReportLoader";
+import { shareEnabled } from "@/lib/supabase/server";
 
 // cacheComponents 환경: 동적 파라미터는 Suspense 안에서 읽는다
 export default function ReportPage({ params }: PageProps<"/r/[id]">) {
@@ -12,5 +13,5 @@ export default function ReportPage({ params }: PageProps<"/r/[id]">) {
 
 async function Loader({ params }: { params: PageProps<"/r/[id]">["params"] }) {
   const { id } = await params;
-  return <ReportLoader id={id} />;
+  return <ReportLoader id={id} shareEnabled={shareEnabled()} />;
 }

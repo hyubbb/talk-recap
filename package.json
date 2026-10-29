@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-query": "^5.105.0",
     "galmuri": "^2.40.3",
     "jotai": "^3.0.1",

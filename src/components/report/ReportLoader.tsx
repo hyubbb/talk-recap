@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { ReportView } from "./ReportView";
 import { loadReport } from "@/lib/report/storage";
+import { SharePanel } from "@/components/share/SharePanel";
 
 const noop = () => () => {};
 
-export function ReportLoader({ id }: { id: string }) {
+export function ReportLoader({ id, shareEnabled }: { id: string; shareEnabled: boolean }) {
   // localStorage는 브라우저에서만 읽을 수 있으므로 서버 렌더 때는 null
   const raw = useSyncExternalStore(
     noop,
@@ -29,5 +30,5 @@ export function ReportLoader({ id }: { id: string }) {
       </main>
     );
   }
-  return <ReportView saved={saved} />;
+  return <ReportView saved={saved} actions={<SharePanel saved={saved} enabled={shareEnabled} />} />;
 }

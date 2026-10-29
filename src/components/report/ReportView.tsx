@@ -10,7 +10,15 @@ const fmt = (ts: number) => {
   return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}`;
 };
 
-export function ReportView({ saved }: { saved: SavedReport }) {
+interface Props {
+  saved: SavedReport;
+  /** 공유 링크(/s/[id])로 열었을 때 */
+  shared?: { expiresAt: string };
+  /** 결과 제목 아래에 붙는 영역 (공유 버튼 등) */
+  actions?: React.ReactNode;
+}
+
+export function ReportView({ saved, shared, actions }: Props) {
   const { report, stats, members } = saved;
   const byName = new Map(members.map((m) => [m.name, m]));
   const color = (name: string) => byName.get(name)?.color ?? "var(--color-haze)";
@@ -28,7 +36,13 @@ export function ReportView({ saved }: { saved: SavedReport }) {
         </Link>
       </header>
 
-      {isMock && (
+      {shared && (
+        <p className="mb-6 text-[13px] text-haze">
+          공유된 결과예요 · {new Date(shared.expiresAt).toLocaleDateString("ko-KR")}까지 볼 수 있어요
+        </p>
+      )}
+
+      {isMock && !shared && (
         <p className="mb-6 rounded-[14px] bg-dusk p-4 text-[14px] leading-[1.55] text-haze">
           지금은 목업 결과예요. <code className="text-moon">.env.local</code>에 <code className="text-moon">OPENAI_API_KEY</code>를
           넣고 서버를 다시 켜면 진짜 분석이 나와요.
@@ -42,6 +56,8 @@ export function ReportView({ saved }: { saved: SavedReport }) {
         <h1 className="mt-2 text-[32px] leading-[1.2] font-extrabold tracking-[-0.03em]">{report.title}</h1>
         <p className="mt-3 text-[17px] leading-[1.6]">{report.oneLiner}</p>
       </section>
+
+      {actions}
 
       <Section title="줄거리">
         <ol className="flex flex-col gap-4">
