@@ -9,7 +9,8 @@ import { ObjectionSlot } from "@/components/objection/ObjectionSlot";
 import { BagCard } from "@/components/bag/BagCard";
 import { MemberCard } from "@/components/cards/MemberCard";
 import { SaveImageButton } from "@/components/cards/SaveImageButton";
-import { ImagePrompts } from "@/components/prompts/ImagePrompts";
+// [보류] 이미지 만들기 프롬프트 — 다시 켜려면 이 import와 아래 "이미지 만들기 프롬프트" 섹션 주석을 풀기 (docs/TASKS.md "보류 중인 기능")
+// import { ImagePrompts } from "@/components/prompts/ImagePrompts";
 import type { Report } from "@/lib/llm/schema";
 
 const fmt = (ts: number) => {
@@ -187,9 +188,11 @@ export function ReportView({ saved, shared, actions }: Props) {
         </ul>
       </Section>
 
+      {/* [보류] 이미지 만들기 프롬프트 — 다시 켤 때 주석 해제 (docs/TASKS.md "보류 중인 기능")
       <Section title="이미지 만들기 프롬프트">
         <ImagePrompts report={report} colorOf={color} />
       </Section>
+      */}
 
       <Section title="총평">
         <p className="text-[17px] leading-[1.7]">{report.closing}</p>

@@ -125,3 +125,14 @@ UI는 키 없이 mock 모드로 확인할 수 있다. 실제 대화 파일은 �
 3. 배포된 공유 링크에서 퀴즈를 끝까지 풀어 결과 목록에 "10개 중 N개"가 나오는지 확인
 
 적용 전에도 앱은 깨지지 않는다. API가 컬럼이 없다는 에러(42703, PGRST204)를 받으면 개수 없이 저장하고, 목록은 "80점"처럼 점수로 보여준다.
+
+## 보류 중인 기능
+
+### 이미지 만들기 프롬프트 (T8) — 화면에서 숨김
+
+리포트 하단 "이미지 만들기 프롬프트" 섹션을 잠시 숨겼다. 코드는 지우지 않았다.
+
+- 숨긴 곳: `src/components/report/ReportView.tsx`의 `ImagePrompts` import와 `<Section title="이미지 만들기 프롬프트">` 블록 (둘 다 `[보류]` 주석)
+- 그대로 남아 있는 것: `src/components/prompts/ImagePrompts.tsx`, `src/lib/imagePrompt/build.ts`(+`prompt.test.ts`)
+- AI 요청 쪽: 이 기능은 LLM에 따로 요청하지 않는다. 종합 리포트의 `members[].archetype/humor/care/bag`을 코드 템플릿에 채워 만들기 때문에 `src/lib/llm/prompts.ts`·`schema.ts`에는 숨길 부분이 없다. 나중에 LLM이 직접 프롬프트를 쓰게 바꾸려면 `reportSchema`에 `imagePrompts` 필드를 추가하고 `synthPrompt`에 지시를 넣는다(출력 토큰이 늘어 비용 증가).
+- 다시 켜기: 위 두 `[보류]` 주석을 풀고 `npm run build`
