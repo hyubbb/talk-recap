@@ -164,6 +164,37 @@ export function FeatureCarousel() {
     const i = Math.round(el.scrollLeft / (el.firstElementChild as HTMLElement).offsetWidth);
     if (i !== index) setIndex(Math.min(SLIDES.length - 1, Math.max(0, i)));
   };
+  // 마우스로 잡아 끌어서 넘기기 (터치는 브라우저 기본 스와이프를 그대로 쓴다)
+  const drag = useRef<{ x: number; left: number; moved: boolean } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse" || e.button !== 0 || !track.current) return;
+    drag.current = { x: e.clientX, left: track.current.scrollLeft, moved: false };
+    track.current.setPointerCapture(e.pointerId);
+    setDragging(true);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d || !track.current) return;
+    const dx = e.clientX - d.x;
+    if (Math.abs(dx) > 3) d.moved = true;
+    track.current.scrollLeft = d.left - dx;
+  };
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const el = track.current;
+    if (!d || !el) return;
+    drag.current = null;
+    el.releasePointerCapture(e.pointerId);
+    setDragging(false);
+    // 조금만 끌어도 넘어가게: 끈 방향으로 한 장
+    const w = (el.firstElementChild as HTMLElement).offsetWidth;
+    const from = Math.round(d.left / w);
+    const dx = e.clientX - d.x;
+    const to = Math.abs(dx) > 40 ? from + (dx < 0 ? 1 : -1) : from;
+    go(Math.min(SLIDES.length - 1, Math.max(0, to)));
+  };
+
   const go = (i: number) => {
     const el = track.current;
     const slide = el?.children[i] as HTMLElement | undefined;
@@ -181,7 +212,12 @@ export function FeatureCarousel() {
       <div
         ref={track}
         onScroll={onScroll}
-        className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onDragStart={(e) => e.preventDefault()}
+        className={`-mx-5 flex gap-3 ${dragging ? "cursor-grabbing select-none" : "snap-x snap-mandatory cursor-grab"} overflow-x-auto scroll-px-5 px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
       >
         {SLIDES.map((s, i) => (
           <div
