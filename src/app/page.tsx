@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ExportGuide } from "@/components/ExportGuide";
 import { FeatureCarousel } from "@/components/FeatureCarousel";
 import { HeroChat } from "@/components/HeroChat";
-import { DataNotice } from "@/components/DataNotice";
+import { DataNoticeModal } from "@/components/DataNoticeModal";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export default function Home() {
@@ -41,12 +41,11 @@ export default function Home() {
           >
             대화 파일 올리기
           </Link>
-          <p className="mt-3 text-center text-[13px] text-haze">
-            대화 파일은 브라우저에서만 읽고, 서버에 저장하지 않아요.{" "}
-            <a href="#data" className="underline underline-offset-2">
-              자세히
-            </a>
-          </p>
+          {/* dialog는 <p> 안에 둘 수 없어서 문장과 버튼을 나란히 둔다 */}
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-1 text-[13px] text-haze">
+            <span>대화 파일은 브라우저에서만 읽고, 서버에 저장하지 않아요.</span>
+            <DataNoticeModal label="자세히" className="!text-[13px] !font-normal !text-haze underline-offset-2" />
+          </div>
         </section>
 
         <section className="mt-16">
@@ -54,15 +53,6 @@ export default function Home() {
             대화 파일은 이렇게 꺼내요
           </h2>
           <ExportGuide />
-        </section>
-
-        <section id="data" className="mt-16 scroll-mt-6">
-          <h2 className="text-[22px] font-bold tracking-[-0.02em]">
-            내 대화는 어디로 가나요?
-          </h2>
-          <div className="mt-4">
-            <DataNotice />
-          </div>
         </section>
       </main>
       <SiteFooter />

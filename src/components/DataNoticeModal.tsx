@@ -3,8 +3,8 @@
 import { useRef } from "react";
 import { DataNotice } from "@/components/DataNotice";
 
-/** "자세히 보기"를 누르면 랜딩의 "내 대화는 어디로 가나요?"와 같은 내용을 모달로 보여준다 */
-export function DataNoticeModal({ className = "" }: { className?: string }) {
+/** "자세히 보기"를 누르면 "내 대화는 어디로 가나요?"(데이터 처리 안내)를 모달로 보여준다. 첫 화면·대화 올리기에서 쓴다 */
+export function DataNoticeModal({ className = "", label = "자세히 보기" }: { className?: string; label?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   const open = () => {
     ref.current?.showModal();
@@ -15,7 +15,7 @@ export function DataNoticeModal({ className = "" }: { className?: string }) {
   return (
     <>
       <button type="button" onClick={open} className={`text-[14px] font-semibold text-spark underline underline-offset-4 ${className}`}>
-        자세히 보기
+        {label}
       </button>
       <dialog
         ref={ref}
