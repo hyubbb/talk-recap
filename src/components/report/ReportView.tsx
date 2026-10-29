@@ -9,6 +9,7 @@ import { ObjectionSlot } from "@/components/objection/ObjectionSlot";
 import { BagCard } from "@/components/bag/BagCard";
 import { MemberCard } from "@/components/cards/MemberCard";
 import { SaveImageButton } from "@/components/cards/SaveImageButton";
+import { PastReportsMenu } from "./PastReportsMenu";
 // [보류] 이미지 만들기 프롬프트 — 다시 켜려면 이 import와 아래 "이미지 만들기 프롬프트" 섹션 주석을 풀기 (docs/TASKS.md "보류 중인 기능")
 // import { ImagePrompts } from "@/components/prompts/ImagePrompts";
 import type { Report } from "@/lib/llm/schema";
@@ -41,9 +42,12 @@ export function ReportView({ saved, shared, actions }: Props) {
         <Link href="/" className="font-pixel text-[15px]">
           톡방 Wrapped
         </Link>
-        <Link href="/new" className="text-[14px] text-haze hover:text-moon">
-          새로 분석
-        </Link>
+        <div className="flex items-center gap-4">
+          {!shared && <PastReportsMenu currentId={saved.id} />}
+          <Link href="/new" className="text-[14px] text-haze hover:text-moon">
+            새로 분석
+          </Link>
+        </div>
       </header>
 
       {shared && (
