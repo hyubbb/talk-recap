@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAtom, useAtomValue, useStore } from "jotai";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RecentReports } from "@/components/upload/RecentReports";
 import { DataNoticeModal } from "@/components/DataNoticeModal";
 import { AnalysisOverlay } from "@/components/analysis/AnalysisOverlay";
@@ -17,6 +17,8 @@ import { useAnalyzeWorker } from "@/hooks/useAnalyzeWorker";
 import { useRunAnalysis } from "@/hooks/useRunAnalysis";
 import { analysisAtom } from "@/state/analysis";
 import { aliasesAtom, consentAtom, groupsAtom, metaAtom, phaseAtom, rangeAtom } from "@/state/upload";
+import { PAYMENT_REQUIRED, TicketBar, redeemTicket, useTicket } from "@/components/pay/TicketBar";
+import { productById } from "@/lib/legal/business";
 import type { MemberGroup } from "@/lib/kakao/members";
 import type { DateRange } from "@/workers/protocol";
 
@@ -36,7 +38,28 @@ export default function NewPage() {
     if (analysis.kind === "done") router.push(`/r/${analysis.reportId}`);
   }, [analysis, router]);
 
-  const start = () => run.mutate();
+  const range = useAtomValue(rangeAtom);
+  const ticket = useTicket();
+  const [ticketError, setTicketError] = useState<string | null>(null);
+  // 분석할 기간(일). 기간을 따로 고르지 않았으면 대화 전체
+  const span = range ?? (meta ? { from: meta.firstTs, to: meta.lastTs } : null);
+  const days = span ? Math.floor((span.to - span.from) / 86_400_000) + 1 : 0;
+  const t = ticket.data ?? null;
+  const overLimit = t ? days > (productById(t.order.plan)?.days ?? 0) : false;
+  const blocked = (PAYMENT_REQUIRED && !t) || overLimit;
+  const start = async () => {
+    setTicketError(null);
+    if (t) {
+      try {
+        await redeemTicket(t, days);
+        ticket.refetch();
+      } catch (e) {
+        setTicketError(e instanceof Error ? e.message : "이용권을 사용하지 못했어요.");
+        return;
+      }
+    }
+    run.mutate();
+  };
   // 버튼을 누른 직후(구간 준비)부터 결과 페이지로 넘어갈 때까지 진행 중으로 본다
   const running = run.isPending || analysis.kind === "running" || analysis.kind === "done";
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -118,9 +141,15 @@ export default function NewPage() {
                 />
                 방 멤버들에게 이 대화를 분석에 쓴다고 알렸고, 동의를 받았어요.
               </label>
+              <TicketBar ticket={t} days={days} />
+              {ticketError && (
+                <p className="mb-2 text-[13px] text-danger" role="alert">
+                  {ticketError}
+                </p>
+              )}
               <button
                 type="button"
-                disabled={!consent || running}
+                disabled={!consent || running || blocked}
                 onClick={start}
                 className="h-14 w-full rounded-[16px] bg-spark text-[17px] font-bold text-spark-ink disabled:opacity-40"
               >

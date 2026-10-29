@@ -29,8 +29,22 @@ export const pending = (v: string | null) => v ?? "준비 중";
  * 가격은 부가세 포함 원 단위. 바꾸면 약관 변경 공지 대상이다(시행 7일 전 고지).
  */
 export const PRODUCTS = [
-  { id: "lite", name: "라이트 분석", price: 900, scope: "최대 100일 기간의 대화를 AI로 분석" },
-  { id: "full", name: "1년 분석", price: 1500, scope: "최대 1년 기간의 대화를 AI로 분석" },
+  { id: "lite", name: "라이트 분석", price: 900, days: 100, scope: "최대 100일 기간의 대화를 AI로 분석" },
+  { id: "full", name: "1년 분석", price: 1500, days: 365, scope: "최대 1년 기간의 대화를 AI로 분석" },
 ] as const;
+
+export type ProductId = (typeof PRODUCTS)[number]["id"];
+export const productById = (id: string) => PRODUCTS.find((p) => p.id === id) ?? null;
+
+/**
+ * 서비스 제공 기간 (토스페이 심사: 무형 상품은 결제 후 최종 제공 완료까지 1년 이내).
+ * 이용권은 결제일부터 USE_DAYS 안에 분석을 시작해야 하고, 결과 재열람·이미지 다운로드·공유 링크(재발송)는
+ * 분석일부터 RESULT_DAYS 동안 제공한다. 따라서 결제 후 최대 TOTAL_DAYS 안에 제공이 끝난다.
+ */
+export const SERVICE_PERIOD = {
+  useDays: 30,
+  resultDays: 30,
+  totalDays: 60,
+} as const;
 
 export const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;

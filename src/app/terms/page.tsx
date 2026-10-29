@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Article, LegalDoc, List } from "@/components/legal/LegalDoc";
-import { BUSINESS, POLICY_EFFECTIVE_DATE, PRODUCTS, pending, won } from "@/lib/legal/business";
+import { BUSINESS, POLICY_EFFECTIVE_DATE, PRODUCTS, SERVICE_PERIOD, pending, won } from "@/lib/legal/business";
 
 export const metadata: Metadata = { title: "이용약관 · Talk Recap" };
 
@@ -124,6 +124,8 @@ export default function TermsPage() {
           items={[
             "두 상품 모두 같은 결과(AI 리포트, 스토리, 카드, 공유 링크·퀴즈·반박)를 제공하며, 분석하는 대화의 기간만 다릅니다. 대화 파일 업로드와 숫자 통계 미리보기는 무료입니다.",
             "대화가 상품의 최대 기간보다 길면, 분석할 기간(100일 또는 1년)을 업로드 화면에서 직접 고릅니다.",
+            `서비스 제공 기간: 이용권은 결제일부터 ${SERVICE_PERIOD.useDays}일 안에 분석을 시작해야 하며, 분석 결과는 분석을 시작하면 즉시(보통 1~3분) 제공합니다. 결과의 재열람·이미지 다운로드·공유 링크(재발송)는 분석일부터 ${SERVICE_PERIOD.resultDays}일 동안 제공합니다. 따라서 결제 후 최종 제공 완료까지의 기간은 최대 ${SERVICE_PERIOD.totalDays}일(1년 이내)입니다.`,
+            `사용 기한(결제일부터 ${SERVICE_PERIOD.useDays}일) 안에 분석을 시작하지 않은 이용권은 기한이 지나면 사용할 수 없으며, 결제일부터 7일 이내라면 전액 환불을 요청할 수 있습니다.`,
             "결제 1회로 분석 1회를 이용할 수 있습니다. 같은 대화를 다시 분석하거나 기간을 바꿔 분석하려면 다시 결제해야 합니다.",
             "상품 내용, 가격, 제공 방법, 청약철회 제한 사실은 결제 전 화면에 표시합니다. 결제는 (주)토스페이먼츠의 결제 서비스를 통해 이루어집니다.",
             "유료 서비스는 결제 완료 즉시 제공이 시작되는 디지털 콘텐츠입니다. 이용자는 결제일로부터 7일 이내에 청약을 철회할 수 있으나, AI 분석이 시작되어 결과 제공이 개시된 경우에는 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항 제5호에 따라 청약철회가 제한됩니다. 회사는 결제 전에 이 사실을 표시합니다.",
