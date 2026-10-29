@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useAtom, useAtomValue, useStore } from "jotai";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useSyncExternalStore } from "react";
-import { latestReportId } from "@/lib/report/storage";
+import { useEffect, useRef } from "react";
+import { RecentReports } from "@/components/upload/RecentReports";
 import { AnalysisOverlay } from "@/components/analysis/AnalysisOverlay";
 import { Dropzone } from "@/components/upload/Dropzone";
 import { MemberEditor } from "@/components/upload/MemberEditor";
@@ -21,8 +21,6 @@ import type { DateRange } from "@/workers/protocol";
 
 const STEP_LABEL = { reading: "파일 여는 중", parsing: "메시지 읽는 중", stats: "통계 내는 중" } as const;
 
-const noopSubscribe = () => () => {};
-
 export default function NewPage() {
   const phase = useAtomValue(phaseAtom);
   const meta = useAtomValue(metaAtom);
@@ -32,8 +30,6 @@ export default function NewPage() {
   const analysis = useAtomValue(analysisAtom);
   const router = useRouter();
   const store = useStore();
-  // 이 브라우저에 저장된 최근 결과가 있으면 우측 상단에서 바로 갈 수 있게 (저장소는 마운트 후에만 읽는다)
-  const lastId = useSyncExternalStore(noopSubscribe, latestReportId, () => null);
 
   useEffect(() => {
     if (analysis.kind === "done") router.push(`/r/${analysis.reportId}`);
@@ -60,14 +56,6 @@ export default function NewPage() {
         <Link href="/" className="font-pixel text-[15px]">
           톡방 Wrapped
         </Link>
-        {lastId && (
-          <Link
-            href={`/r/${lastId}`}
-            className="rounded-full bg-dusk-2 px-4 py-2 text-[14px] font-semibold text-moon"
-          >
-            결과 보기
-          </Link>
-        )}
       </header>
 
       <h1 className="text-[26px] font-extrabold tracking-[-0.03em]">대화 올리기</h1>
@@ -78,6 +66,7 @@ export default function NewPage() {
       <div className="mt-6">
         <Dropzone onFiles={parse} busy={phase.kind === "working"} />
       </div>
+      {!meta && <RecentReports />}
 
       {phase.kind === "working" && (
         <p className="mt-4 text-[14px] text-haze" role="status">

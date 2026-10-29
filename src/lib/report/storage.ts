@@ -33,9 +33,20 @@ export function loadReport(id: string): SavedReport | null {
   }
 }
 
-/** 이 브라우저에 저장된 가장 최근 결과의 id (없으면 null) */
-export function latestReportId(): string | null {
-  let best: { id: string; at: number } | null = null;
+/** 업로드 화면 "지난 결과" 목록에 쓰는 요약 */
+export interface ReportSummary {
+  id: string;
+  createdAt: number;
+  title: string;
+  start: number;
+  end: number;
+  memberCount: number;
+}
+
+/** 이 브라우저에 저장된 결과 요약, 최근 순 */
+export function listReports(limit = 5): ReportSummary[] {
+  const out: ReportSummary[] = [];
+  const seen = new Set<string>();
   try {
     for (const store of [localStorage, sessionStorage]) {
       for (let i = 0; i < store.length; i++) {
@@ -43,16 +54,25 @@ export function latestReportId(): string | null {
         if (!key?.startsWith("tokbang:report:")) continue;
         try {
           const r = JSON.parse(store.getItem(key) ?? "") as Partial<SavedReport>;
-          if (r.id && typeof r.createdAt === "number" && (!best || r.createdAt > best.at)) best = { id: r.id, at: r.createdAt };
+          if (!r.id || typeof r.createdAt !== "number" || seen.has(r.id)) continue;
+          seen.add(r.id);
+          out.push({
+            id: r.id,
+            createdAt: r.createdAt,
+            title: r.report?.title ?? "우리 방 리포트",
+            start: r.stats?.start ?? 0,
+            end: r.stats?.end ?? 0,
+            memberCount: r.members?.length ?? 0,
+          });
         } catch {
           // 깨진 항목은 건너뛴다
         }
       }
     }
   } catch {
-    return null;
+    return [];
   }
-  return best?.id ?? null;
+  return out.sort((a, b) => b.createdAt - a.createdAt).slice(0, limit);
 }
 
 export function newReportId(): string {
