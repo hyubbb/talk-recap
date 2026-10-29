@@ -23,3 +23,14 @@ export const BUSINESS = {
 export const POLICY_EFFECTIVE_DATE = "2026년 10월 29일";
 
 export const pending = (v: string | null) => v ?? "준비 중";
+
+/**
+ * 유료 상품 (기간·규모로 구분). 이용약관 제9조와 결제 화면 표시에 같이 쓴다.
+ * 가격은 부가세 포함 원 단위. 바꾸면 약관 변경 공지 대상이다(시행 7일 전 고지).
+ */
+export const PRODUCTS = [
+  { id: "lite", name: "라이트 분석", price: 500, scope: "최근 30일 이내 기간의 대화를 AI로 분석" },
+  { id: "full", name: "전체 분석", price: 1500, scope: "기간 제한 없이 올린 대화 전체를 AI로 분석" },
+] as const;
+
+export const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
