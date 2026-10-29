@@ -99,8 +99,15 @@ export default function NewPage() {
           <RangePicker onChange={onRangeChange} />
 
           <h2 className="mt-10 text-[20px] font-bold">멤버 확인</h2>
-          <p className="mt-1 mb-4 text-[14px] leading-[1.55] text-haze">
+          <p className="mt-1 text-[14px] leading-[1.55] text-haze">
             닉네임을 바꾼 사람은 합치고, 단톡방에서 부르는 별명을 적어 주세요. 별명은 &lsquo;누가 누구를 부르나&rsquo; 분석에 쓰여요.
+          </p>
+          <p className="mt-3 mb-4 flex gap-2 rounded-[14px] bg-dusk-2 px-4 py-3 text-[14px] leading-[1.55]">
+            <span aria-hidden>✏️</span>
+            <span>
+              <b className="font-semibold">이름을 눌러서 바꿀 수 있어요.</b>{" "}
+              <span className="text-haze">바꾼 이름이 결과, 스토리, 퀴즈, 카드에 그대로 나와요. 실명 대신 별명으로 바꿔도 좋아요.</span>
+            </span>
           </p>
           <MemberEditor onChange={onMembersChange} />
 

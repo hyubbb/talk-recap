@@ -37,7 +37,8 @@ export function useRunAnalysis(
 
   return useMutation({
     mutationFn: async () => {
-      const groups = store.get(groupsAtom);
+      // 멤버 확인에서 바꾼 이름(displayName)이 구간 원문·결과·스토리·퀴즈 전체에 쓰인다. 빈 이름은 원래 이름으로
+      const groups = store.get(groupsAtom).map((g) => ({ ...g, displayName: g.displayName.trim() || g.names[0] }));
       const stats = store.get(statsAtom)!;
       const people = groups.filter((g) => !g.isBot);
       const names = people.map((g) => g.displayName);
