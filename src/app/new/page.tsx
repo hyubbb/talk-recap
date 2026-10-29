@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAtom, useAtomValue, useStore } from "jotai";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { AnalysisProgress } from "@/components/analysis/AnalysisProgress";
+import { AnalysisOverlay } from "@/components/analysis/AnalysisOverlay";
 import { Dropzone } from "@/components/upload/Dropzone";
 import { MemberEditor } from "@/components/upload/MemberEditor";
 import { RangePicker } from "@/components/upload/RangePicker";
@@ -28,18 +28,15 @@ export default function NewPage() {
   const run = useRunAnalysis(chunkTexts);
   const analysis = useAtomValue(analysisAtom);
   const router = useRouter();
-  const progressRef = useRef<HTMLDivElement>(null);
   const store = useStore();
 
   useEffect(() => {
     if (analysis.kind === "done") router.push(`/r/${analysis.reportId}`);
   }, [analysis, router]);
 
-  const start = () => {
-    run.mutate();
-    requestAnimationFrame(() => progressRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
-  };
-  const running = analysis.kind === "running";
+  const start = () => run.mutate();
+  // 버튼을 누른 직후(구간 준비)부터 결과 페이지로 넘어갈 때까지 진행 중으로 본다
+  const running = run.isPending || analysis.kind === "running" || analysis.kind === "done";
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 멤버·별명·기간 중 무엇이 바뀌든 최신 값 셋을 모아 한 번만 다시 계산한다
@@ -90,10 +87,6 @@ export default function NewPage() {
             <FormatReport samples={meta.unparsedSamples} unparsed={meta.unparsedLines} />
           )}
 
-          <div ref={progressRef} className="mt-6 scroll-mt-4">
-            <AnalysisProgress />
-          </div>
-
           <h2 className="mt-10 text-[20px] font-bold">분석할 기간</h2>
           <p className="mt-1 mb-4 text-[14px] leading-[1.55] text-haze">
             올린 대화 중 일부 기간만 골라서 분석할 수 있어요.
@@ -132,6 +125,7 @@ export default function NewPage() {
           </div>
         </>
       )}
+      <AnalysisOverlay pending={run.isPending} onRetry={start} />
     </main>
   );
 }

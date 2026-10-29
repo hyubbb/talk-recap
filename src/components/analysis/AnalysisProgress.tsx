@@ -16,7 +16,8 @@ const DOT: Record<ChunkRun["status"], string> = {
   failed: "bg-danger",
 };
 
-export function AnalysisProgress() {
+/** embedded: 오버레이 안에 넣을 때 카드 배경·여백을 뺀다 */
+export function AnalysisProgress({ embedded = false }: { embedded?: boolean }) {
   const state = useAtomValue(analysisAtom);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -32,11 +33,13 @@ export function AnalysisProgress() {
   const elapsed = state.kind === "running" ? Math.round((now - state.startedAt) / 1000) : 0;
 
   return (
-    <div className="rounded-[var(--radius-card)] bg-dusk p-5" role="status" aria-live="polite">
+    <div className={embedded ? "" : "rounded-[var(--radius-card)] bg-dusk p-5"} role="status" aria-live="polite">
       <div className="flex items-baseline justify-between">
         <p className="text-[17px] font-bold">
           {state.kind === "error"
-            ? "분석이 멈췄어요"
+            ? embedded
+              ? `완료된 구간 ${done}/${chunks.length}`
+              : "분석이 멈췄어요"
             : state.stage === "synth"
               ? "구간 노트를 합치는 중"
               : `구간 분석 중 ${done}/${chunks.length}`}
