@@ -47,3 +47,6 @@ Talk_*.txt
 KakaoTalk*.txt
 KakaoTalk*.csv
 /private/
+
+# 다른 AI 도구의 세션 기록
+.gjc/
