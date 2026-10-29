@@ -13,7 +13,7 @@ export function SiteFooter() {
         <Link href="/privacy" className="font-bold text-moon">
           개인정보처리방침
         </Link>
-        <Link href="/terms#refund" className="hover:text-moon">
+        <Link href="/refund" className="hover:text-moon">
           환불 정책
         </Link>
       </nav>

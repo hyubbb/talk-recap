@@ -132,6 +132,9 @@ export default function TermsPage() {
             `환불 요청: ${pending(b.email)} (주문번호, 결제 일시를 함께 보내 주세요)`,
           ]}
         />
+        <p>
+          상황별 환불 기준과 신청 방법은 <Link href="/refund" className="underline">환불 정책</Link>에 자세히 적었습니다.
+        </p>
       </Article>
 
       <Article title="제10조 (서비스의 변경·중단)">
