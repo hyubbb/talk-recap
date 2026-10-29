@@ -68,7 +68,3 @@ body {
   }
 }
 
-/* 하단 고정 버튼이 있는 화면: 푸터가 버튼 뒤에 가려지지 않게 */
-body:has([data-fixed-cta]) footer {
-  padding-bottom: 260px;
-}

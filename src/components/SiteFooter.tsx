@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { BUSINESS, pending } from "@/lib/legal/business";
 
-/** 사업자 정보 푸터 (전자상거래법 사업자 표시). 모든 화면 하단 */
+/**
+ * 사업자 정보 푸터 (전자상거래법 사업자 표시).
+ * 첫 화면·요금·결제·약관·개인정보처리방침·환불 정책에만 붙인다. 내용이 짧아도 화면 맨 아래에 붙도록 mt-auto.
+ */
 export function SiteFooter() {
   const b = BUSINESS;
   return (
-    <footer className="mx-auto w-full max-w-[560px] border-t border-dusk-2 px-5 pt-6 pb-10 text-[12px] leading-[1.7] text-haze">
+    <footer className="mx-auto mt-auto w-full max-w-[560px] border-t border-dusk-2 px-5 pt-6 pb-10 text-[12px] leading-[1.7] text-haze">
       <nav className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
         <Link href="/pricing" className="hover:text-moon">
           요금 안내

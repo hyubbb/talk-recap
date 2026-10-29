@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
-import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,9 +16,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className="h-full">
-      <body className="min-h-full">
+      <body className="flex min-h-dvh flex-col">
         <Providers>{children}</Providers>
-        <SiteFooter />
       </body>
     </html>
   );
