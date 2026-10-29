@@ -12,12 +12,16 @@ import type { ChunkText, DateRange } from "@/workers/protocol";
 import type { MemberGroup } from "@/lib/kakao/members";
 import { reportQuotes } from "@/lib/report/context";
 import type { ContextRequest, ContextResult } from "@/hooks/useAnalyzeWorker";
+import { orderHeaders } from "@/lib/pay/pending";
+
+/** 분석 시작 결제 증빙 (결제 없이 무료로 돌릴 때는 null) */
+export type PaidOrder = { orderNo: string; secret: string } | null;
 
 const CONCURRENCY = 3;
 const MAX_TRIES = 3;
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+async function postJson<T>(url: string, body: unknown, extra: Record<string, string> = {}): Promise<T> {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", ...extra }, body: JSON.stringify(body) });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((json as { error?: string }).error ?? `요청 실패 (${res.status})`);
   return json as T;
@@ -39,7 +43,8 @@ export function useRunAnalysis(
   const setState = useSetAtom(analysisAtom);
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (order: PaidOrder = null) => {
+      const auth = orderHeaders(order);
       // 멤버 확인에서 바꾼 이름(displayName)이 구간 원문·결과·스토리·퀴즈 전체에 쓰인다. 빈 이름은 원래 이름으로
       const groups = store.get(groupsAtom).map((g) => ({ ...g, displayName: g.displayName.trim() || g.names[0] }));
       const stats = store.get(statsAtom)!;
@@ -72,6 +77,7 @@ export function useRunAnalysis(
               const r = await postJson<{ notes: ChunkNotes; dropped: number; usage: typeof usage; provider: string }>(
                 "/api/analyze/chunk",
                 { index: t.index, total: texts.length, period: `${md(t.start)}~${md(t.end)}`, members: names, text: t.text },
+                auth,
               );
               notes[t.index] = r.notes;
               dropped += r.dropped;
@@ -100,7 +106,7 @@ export function useRunAnalysis(
         members: names,
         statsDigest: statsDigest(stats, (id) => nameOf.get(id) ?? id),
         notes: ok,
-      });
+      }, auth);
       usage.input += synth.usage.input;
       usage.output += synth.usage.output;
 

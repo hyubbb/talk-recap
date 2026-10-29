@@ -1,5 +1,4 @@
 import { randomBase62 } from "../share/token";
-import { SERVICE_PERIOD } from "../legal/business";
 
 /** 상점 주문번호: TR-YYYYMMDD-랜덤10자 (토스페이 orderNo 최대 50자, 가맹점 내 유일) */
 export function newOrderNo(now = new Date()): string {
@@ -9,11 +8,6 @@ export function newOrderNo(now = new Date()): string {
 
 export function isValidOrderNo(id: string): boolean {
   return /^TR-\d{8}-[0-9A-Za-z]{10}$/.test(id);
-}
-
-/** 이용권 사용 기한: 결제 시각 + 30일 */
-export function ticketExpiresAt(paidAt: Date): Date {
-  return new Date(paidAt.getTime() + SERVICE_PERIOD.useDays * 86_400_000);
 }
 
 export type OrderStatus = "created" | "paid" | "canceled" | "used" | "refunded";

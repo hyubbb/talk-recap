@@ -18,7 +18,7 @@ export default function PricingPage() {
       </header>
       <h1 className="text-[26px] font-extrabold tracking-[-0.03em]">요금 안내</h1>
       <p className="mt-2 text-[15px] leading-[1.6] text-haze">
-        대화 파일 올리기와 숫자 통계 미리보기는 무료예요. AI 분석은 분석할 기간에 따라 이용권을 골라요.
+        대화 파일 올리기와 숫자 통계 미리보기는 무료예요. AI 분석은 시작할 때 결제하고, 가격은 분석할 기간으로 정해져요.
       </p>
 
       <ul className="mt-6 flex flex-col gap-4">
@@ -32,17 +32,23 @@ export default function PricingPage() {
             <ul className="mt-3 flex flex-col gap-1 text-[13px] leading-[1.6] text-haze">
               <li>· AI 리포트, 스토리 슬라이드, 멤버·가방 카드, 이미지 저장</li>
               <li>· 공유 링크(30일), 퀴즈, 반박 투표</li>
-              <li>· 분석 1회 이용권 (부가세 포함)</li>
+              <li>· 분석 1회, 결제 즉시 분석 (부가세 포함)</li>
             </ul>
-            <Link
-              href={`/checkout?plan=${p.id}`}
-              className="mt-4 flex h-12 items-center justify-center rounded-[14px] bg-spark text-[16px] font-bold text-spark-ink"
-            >
-              {p.name} 구매하기
-            </Link>
+
           </li>
         ))}
       </ul>
+
+      <Link href="/new" className="mt-6 flex h-14 items-center justify-center rounded-[16px] bg-spark text-[17px] font-bold text-spark-ink">
+        대화 올리고 분석 시작
+      </Link>
+      <Link
+        href="/new?sample=1&pay=1"
+        className="mt-3 flex h-12 items-center justify-center rounded-[14px] bg-dusk text-[15px] font-semibold"
+      >
+        샘플 대화로 결제 흐름 보기
+      </Link>
+      <p className="mt-2 text-center text-[12px] text-haze">지어낸 샘플 대화로 분석 시작 → 결제창까지 확인할 수 있어요.</p>
 
       <section className="mt-8 rounded-[var(--radius-card)] bg-dusk p-5">
         <h2 className="text-[15px] font-bold">제공 기간</h2>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { checkAnalysisPayment } from "@/lib/pay/gate";
 import { callOpenAI, llmConfig, LlmError } from "@/lib/llm/provider";
 import { chunkNotesSchema } from "@/lib/llm/schema";
 import { chunkPrompt } from "@/lib/llm/prompts";
@@ -19,6 +20,8 @@ const body = z.object({
  * 구간 하나를 분석한다. 대화 원문은 요청 메모리에서만 쓰고 저장·로그하지 않는다.
  */
 export async function POST(req: Request) {
+  const denied = await checkAnalysisPayment(req);
+  if (denied) return denied;
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "요청 형식이 올바르지 않아요." }, { status: 400 });
   const { index, total, period, members, text } = parsed.data;

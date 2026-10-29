@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { isValidOrderNo, newOrderNo, statusFromToss, ticketExpiresAt } from "./order";
-import { PRODUCTS, SERVICE_PERIOD, productById } from "../legal/business";
+import { isValidOrderNo, newOrderNo, statusFromToss } from "./order";
+import { PRODUCTS, SERVICE_PERIOD, productById, productForDays } from "../legal/business";
 
 describe("주문", () => {
   it("주문번호 형식·유일성", () => {
@@ -19,10 +19,12 @@ describe("주문", () => {
     expect(statusFromToss("PAY_STANDBY")).toBeNull();
   });
 
-  it("이용권 기한 30일, 결제 후 제공 완료까지 1년 이내", () => {
-    const paid = new Date("2026-10-29T00:00:00Z");
-    expect(ticketExpiresAt(paid).toISOString()).toBe("2026-11-28T00:00:00.000Z");
-    expect(SERVICE_PERIOD.useDays + SERVICE_PERIOD.resultDays).toBe(SERVICE_PERIOD.totalDays);
+  it("분석 기간으로 상품 결정, 제공 완료까지 1년 이내", () => {
+    expect(productForDays(1)?.id).toBe("lite");
+    expect(productForDays(100)?.id).toBe("lite");
+    expect(productForDays(101)?.id).toBe("full");
+    expect(productForDays(365)?.id).toBe("full");
+    expect(productForDays(366)).toBeNull();
     expect(SERVICE_PERIOD.totalDays).toBeLessThanOrEqual(365);
   });
 

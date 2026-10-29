@@ -68,9 +68,9 @@ export function useAnalyzeWorker() {
   const send = (req: WorkerRequest) => workerRef.current?.postMessage(req);
 
   const parse = useCallback(
-    (files: File[]) => {
+    (files: File[], withAliases?: Record<string, string[]>) => {
       setPhase({ kind: "working", step: "reading" });
-      send({ type: "parse", files, aliases });
+      send({ type: "parse", files, aliases: withAliases ?? aliases });
     },
     [aliases, setPhase],
   );

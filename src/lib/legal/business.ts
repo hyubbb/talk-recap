@@ -36,15 +36,17 @@ export const PRODUCTS = [
 export type ProductId = (typeof PRODUCTS)[number]["id"];
 export const productById = (id: string) => PRODUCTS.find((p) => p.id === id) ?? null;
 
+/** 분석할 기간(일)에 맞는 상품. 1년을 넘으면 null (기간을 줄여야 함) */
+export const productForDays = (days: number) => PRODUCTS.find((p) => days <= p.days) ?? null;
+
 /**
  * 서비스 제공 기간 (토스페이 심사: 무형 상품은 결제 후 최종 제공 완료까지 1년 이내).
- * 이용권은 결제일부터 USE_DAYS 안에 분석을 시작해야 하고, 결과 재열람·이미지 다운로드·공유 링크(재발송)는
- * 분석일부터 RESULT_DAYS 동안 제공한다. 따라서 결제 후 최대 TOTAL_DAYS 안에 제공이 끝난다.
+ * 결제는 분석을 시작할 때 하고, 결제가 끝나면 바로 분석해 결과를 제공한다(보통 1~3분).
+ * 결과 재열람·이미지 다운로드·공유 링크(재발송)는 분석일부터 RESULT_DAYS 동안 제공한다.
  */
 export const SERVICE_PERIOD = {
-  useDays: 30,
   resultDays: 30,
-  totalDays: 60,
+  totalDays: 30,
 } as const;
 
 export const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;

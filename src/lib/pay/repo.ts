@@ -2,7 +2,7 @@ import "server-only";
 import { getSupabase } from "@/lib/supabase/server";
 import { verifyToken } from "@/lib/share/token";
 import { paymentStatus } from "./tosspay";
-import { statusFromToss, ticketExpiresAt, type OrderStatus } from "./order";
+import { statusFromToss, type OrderStatus } from "./order";
 
 export interface OrderRow {
   id: string;
@@ -50,7 +50,7 @@ export async function syncOrder(order: OrderRow): Promise<OrderRow> {
   const now = new Date();
   const patch: Partial<OrderRow> =
     next === "paid"
-      ? { status: "paid", pay_method: st.payMethod ?? null, mode: st.mode, paid_at: now.toISOString(), use_expires_at: ticketExpiresAt(now).toISOString() }
+      ? { status: "paid", pay_method: st.payMethod ?? null, mode: st.mode, paid_at: now.toISOString() }
       : { status: next, mode: st.mode };
   // 동시에 콜백과 완료 화면이 와도 created 상태일 때만 갱신
   const { data, error } = await db.from("orders").update(patch).eq("id", order.id).eq("status", order.status).select(COLS).maybeSingle<OrderRow>();
@@ -70,7 +70,6 @@ export function publicOrder(o: OrderRow) {
     createdAt: o.created_at,
     paidAt: o.paid_at,
     usedAt: o.used_at,
-    useExpiresAt: o.use_expires_at,
   };
 }
 export type PublicOrder = ReturnType<typeof publicOrder>;
