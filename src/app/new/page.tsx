@@ -5,6 +5,7 @@ import { useAtom, useAtomValue, useStore } from "jotai";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { RecentReports } from "@/components/upload/RecentReports";
+import { DataNoticeModal } from "@/components/DataNoticeModal";
 import { AnalysisOverlay } from "@/components/analysis/AnalysisOverlay";
 import { Dropzone } from "@/components/upload/Dropzone";
 import { MemberEditor } from "@/components/upload/MemberEditor";
@@ -62,6 +63,8 @@ export default function NewPage() {
       <p className="mt-2 text-[15px] leading-[1.6] text-haze">
         파일은 이 브라우저 안에서만 읽어요. 다음 단계에서 분석을 시작하기 전까지 아무것도 서버로 보내지 않아요.
       </p>
+      {/* dialog는 <p> 안에 둘 수 없어서 문단 밖에 둔다 */}
+      <DataNoticeModal className="mt-2 self-start" />
 
       <div className="mt-6">
         <Dropzone onFiles={parse} busy={phase.kind === "working"} />
