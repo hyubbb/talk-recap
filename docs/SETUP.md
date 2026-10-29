@@ -21,6 +21,7 @@
 
 `supabase/migrations/0001_init.sql`, 이어서 `0002_realtime.sql` — Supabase 대시보드 SQL Editor에 순서대로 붙여넣고 Run.
 `0002`는 반박 투표 함수(`cast_objection_vote`)와 Realtime 정책을 만든다.
+`0003_quiz_counts.sql`은 퀴즈 결과에 맞힌 개수(`correct`)와 문제 수(`total`)를 더한다. 적용 전에도 앱은 점수만으로 동작하고, 적용 후부터 "10개 중 8개"로 보인다.
 
 | 테이블 | 용도 |
 | --- | --- |
