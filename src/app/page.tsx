@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ExportGuide } from "@/components/ExportGuide";
 import { FeatureCarousel } from "@/components/FeatureCarousel";
 import { HeroChat } from "@/components/HeroChat";
+import { DataNotice } from "@/components/DataNotice";
 
 export default function Home() {
   return (
@@ -34,13 +35,23 @@ export default function Home() {
           대화 파일 올리기
         </Link>
         <p className="mt-3 text-center text-[13px] text-haze">
-          대화 원문은 브라우저에서만 읽고, 서버에 저장하지 않아요.
+          대화 파일은 브라우저에서만 읽고, 서버에 저장하지 않아요.{" "}
+          <a href="#data" className="underline underline-offset-2">
+            자세히
+          </a>
         </p>
       </section>
 
       <section className="mt-16">
         <h2 className="text-[22px] font-bold tracking-[-0.02em]">대화 파일은 이렇게 꺼내요</h2>
         <ExportGuide />
+      </section>
+
+      <section id="data" className="mt-16 scroll-mt-6">
+        <h2 className="text-[22px] font-bold tracking-[-0.02em]">내 대화는 어디로 가나요?</h2>
+        <div className="mt-4">
+          <DataNotice />
+        </div>
       </section>
     </main>
   );

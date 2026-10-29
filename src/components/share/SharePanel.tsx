@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState, useSyncExternalStore } from "react";
 import type { SavedReport } from "@/lib/report/storage";
 import type { ShareInfo } from "@/lib/share/schema";
+import { DataNotice } from "@/components/DataNotice";
 
 const KEY = (reportId: string) => `tokbang:share:${reportId}`;
 const listeners = new Set<() => void>();
@@ -104,6 +105,7 @@ export function SharePanel({ saved, enabled }: { saved: SavedReport; enabled: bo
         <>
           <p className="mt-2 truncate rounded-[14px] bg-dusk-2 px-4 py-3 text-[14px] tabular">{info.url}</p>
           <p className="mt-2 text-[13px] text-haze">{fmtDate(info.expiresAt)}까지 열려요. 링크가 있으면 누구나 볼 수 있어요.</p>
+          <DataNotice compact />
           <div className="mt-4 flex gap-2">
             <button
               type="button"
@@ -127,8 +129,10 @@ export function SharePanel({ saved, enabled }: { saved: SavedReport; enabled: bo
       ) : (
         <>
           <p className="mt-1 text-[14px] leading-[1.55] text-haze">
-            결과(리포트와 통계)를 서버에 30일 동안 저장하고 링크를 만들어요. 대화 원문은 올라가지 않아요.
+            결과를 서버에 30일 동안 저장하고 링크를 만들어요. 대화 파일 전체는 올라가지 않지만, 근거로 붙은 인용 몇 줄은 결과에
+            함께 저장돼요.
           </p>
+          <DataNotice compact />
           <button
             type="button"
             disabled={create.isPending}
