@@ -81,11 +81,11 @@ describe("공유 본문 검증", () => {
         {
           name: "도토리",
           archetype: "a",
+          oneLiner: "o",
           summary: "s",
-          change: "c",
           humor: "h",
-          stress: "s",
-          care: "c",
+          scenes: [],
+          sections: [],
           quotes: [],
           mbti: { type: "ENFP", confidence: 0.5, claimed: null, ei: axis, sn: axis, tf: axis, jp: axis },
           bag: { bag: "에코백", items: [] },
@@ -101,6 +101,25 @@ describe("공유 본문 검증", () => {
 
   it("정상 본문은 통과", () => {
     expect(savedReportSchema.safeParse(sample).success).toBe(true);
+  });
+
+  it("예전 모양 결과(꼭지 없음, 변화·스트레스·챙김 있음)와 근거 문맥도 받는다", () => {
+    const m = sample.report.members[0];
+    const legacy = {
+      ...sample,
+      report: {
+        ...sample.report,
+        members: [{ name: m.name, archetype: "a", summary: "s", humor: "h", change: "c", stress: "s", care: "c", quotes: [], mbti: m.mbti, bag: m.bag }],
+        awards: [{ title: "수다왕", winner: "도토리", reason: "많이 말함" }],
+      },
+    };
+    expect(savedReportSchema.safeParse(legacy).success).toBe(true);
+    const withCtx = {
+      ...sample,
+      contexts: { "도토리|7/19|흠 그렇군": { lines: [{ date: "7/19", time: "09:00", who: "도토리", text: "흠 그렇군" }], focus: 0 } },
+      phrases: { m1: [{ text: "흠", count: 3, context: null }] },
+    };
+    expect(savedReportSchema.safeParse(withCtx).success).toBe(true);
   });
 
   it("리포트가 빠지거나 숫자가 아니면 실패", () => {

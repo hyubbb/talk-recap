@@ -1,5 +1,7 @@
 import type { Report } from "@/lib/llm/schema";
 import type { RoomStats } from "@/lib/kakao/stats";
+import type { ContextMap, PhraseSample } from "./context";
+import { normalizeReport } from "./normalize";
 import { migrateLegacyKeys, STORE_PREFIX, storeKey } from "@/lib/storageKeys";
 
 /** 결과 한 건. MVP에서는 이 브라우저(localStorage)에만 저장한다. 공유는 Supabase 연결 후. */
@@ -12,6 +14,10 @@ export interface SavedReport {
   report: Report;
   usage: { input: number; output: number };
   droppedQuotes: number;
+  /** 근거 인용의 앞뒤 대화 (quoteKey → 문맥). 예전 결과에는 없다 */
+  contexts?: ContextMap;
+  /** 멤버 id → 말버릇과 실제로 쓴 장면. 예전 결과에는 없다 */
+  phrases?: Record<string, PhraseSample[]>;
 }
 
 const KEY = (id: string) => storeKey("report", id);
@@ -29,7 +35,7 @@ export function saveReport(r: SavedReport): void {
 export function loadReport(id: string): SavedReport | null {
   try {
     const raw = localStorage.getItem(KEY(id)) ?? sessionStorage.getItem(KEY(id));
-    return raw ? (JSON.parse(raw) as SavedReport) : null;
+    return raw ? normalizeSaved(JSON.parse(raw) as SavedReport) : null;
   } catch {
     return null;
   }
@@ -76,6 +82,11 @@ export function listReports(limit = 5): ReportSummary[] {
     return [];
   }
   return out.sort((a, b) => b.createdAt - a.createdAt).slice(0, limit);
+}
+
+/** 예전 모양으로 저장된 결과도 지금 화면에서 그대로 쓸 수 있게 맞춘다 */
+export function normalizeSaved(saved: SavedReport): SavedReport {
+  return { ...saved, report: normalizeReport(saved.report) };
 }
 
 export function newReportId(): string {

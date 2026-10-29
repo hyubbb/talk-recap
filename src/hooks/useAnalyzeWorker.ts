@@ -14,11 +14,19 @@ import {
 } from "@/state/upload";
 import type { MemberGroup } from "@/lib/kakao/members";
 import type { ChunkText, DateRange, WorkerRequest, WorkerResponse } from "@/workers/protocol";
+import type { ContextMap, PhraseSample } from "@/lib/report/context";
+
+export interface ContextResult {
+  contexts: ContextMap;
+  phrases: Record<string, PhraseSample[]>;
+}
+export type ContextRequest = Omit<Extract<WorkerRequest, { type: "contexts" }>, "type">;
 
 /** 파싱·통계 워커를 붙잡고, 결과를 jotai 상태로 흘려보낸다. */
 export function useAnalyzeWorker() {
   const workerRef = useRef<Worker | null>(null);
   const pendingTexts = useRef<((c: ChunkText[]) => void) | null>(null);
+  const pendingContexts = useRef<((c: ContextResult) => void) | null>(null);
   const setPhase = useSetAtom(phaseAtom);
   const setMeta = useSetAtom(metaAtom);
   const setGroups = useSetAtom(groupsAtom);
@@ -45,6 +53,9 @@ export function useAnalyzeWorker() {
         setStats(msg.stats);
         setChunks(msg.chunks);
         setRangeCount(msg.rangeCount);
+      } else if (msg.type === "contexts") {
+        pendingContexts.current?.({ contexts: msg.contexts, phrases: msg.phrases });
+        pendingContexts.current = null;
       } else if (msg.type === "chunkTexts") {
         pendingTexts.current?.(msg.chunks);
         pendingTexts.current = null;
@@ -80,5 +91,15 @@ export function useAnalyzeWorker() {
     [],
   );
 
-  return { parse, recompute, chunkTexts };
+  /** 분석이 끝난 뒤 결과에 쓰인 인용의 앞뒤 대화를 받는다 (원문 전체는 워커 밖으로 나오지 않는다) */
+  const contexts = useCallback(
+    (req: ContextRequest) =>
+      new Promise<ContextResult>((resolve) => {
+        pendingContexts.current = resolve;
+        send({ type: "contexts", ...req });
+      }),
+    [],
+  );
+
+  return { parse, recompute, chunkTexts, contexts };
 }

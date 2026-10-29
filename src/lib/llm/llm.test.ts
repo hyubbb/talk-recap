@@ -52,3 +52,22 @@ describe("mock", () => {
     expect(reportSchema.parse(mockReport([notes], ["가나다", "라마바"]))).toBeTruthy();
   });
 });
+
+describe("verifyReport", () => {
+  it("멤버 인용은 본인 말·최대 5개, 근거 없는 꼭지는 버리고, 어워드는 수상자 말만", async () => {
+    const { verifyReport } = await import("./verify");
+    const { fakeReport } = await import("../testing/fakeReport");
+    const r = fakeReport(2, 7).report;
+    const known = r.members.flatMap((m) => [...m.quotes, ...m.scenes.flatMap((b) => b.quotes)]);
+    known.push(r.awards[0].quotes[0]);
+    r.members[0].quotes.push({ date: "7/1", who: r.members[1].name, text: r.members[1].quotes[0].text });
+    const v = verifyReport(r, known);
+    expect(v.members[0].quotes).toHaveLength(5);
+    expect(v.members[0].quotes.every((q) => q.who === r.members[0].name)).toBe(true);
+    expect(v.members[0].scenes).toHaveLength(1);
+    expect(v.members[0].sections).toHaveLength(0); // 꼭지 근거는 known에 없음
+    expect(v.awards[0].quotes).toHaveLength(1);
+    const other = { ...r, awards: [{ ...r.awards[0], quotes: [r.members[1].quotes[0]] }] };
+    expect(verifyReport(other, known).awards[0].quotes).toHaveLength(0);
+  });
+});

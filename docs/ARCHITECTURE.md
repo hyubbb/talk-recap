@@ -14,8 +14,11 @@
        동시 3개씩 POST ─────────────────────→ /api/analyze/chunk ──────────→ OpenAI
                                               (Zod 검증, 인용 원문 대조)
        구간 노트 + 통계 요약 POST ─────────→ /api/analyze/synthesize ─────→ OpenAI
-                                              (노트에 없던 인용 제거)
-  └─ 결과를 localStorage에 저장 → /r/[id]
+                                              (verifyReport: 노트에 없던 인용 제거,
+                                               근거 없는 꼭지 제거, 어워드는 수상자 말만)
+  └─ 워커에 결과 인용을 넘겨 앞뒤 2줄 문맥 + 말버릇 장면을 뽑음 (src/lib/report/context.ts)
+       민감정보 마스킹, 민감 주제 줄은 가림. 원문 전체는 워커 밖으로 안 나감
+  └─ 결과(+문맥)를 localStorage에 저장 → /r/[id]
   └─ 공유: POST /api/share ────────────────→ Supabase reports 테이블 (Zod 검증, 500KB 상한)
        삭제 토큰은 localStorage에만,           DB엔 토큰 sha256 해시만
        DELETE /api/share/[id] (x-delete-token)
@@ -69,5 +72,8 @@
 ## LLM 출력 스키마 (`src/lib/llm/schema.ts`)
 
 - `ChunkNotes`: 구간 요약, 사건, 멤버별 관찰(에피소드·유머·스트레스·챙김·속마음·본인이 밝힌 MBTI·축별 단서·인용), 관계, 레전드 장면, 가방 단서
-- `Report`: 제목, 한 줄 요약, 3~5막 줄거리, 멤버별(아키타입·요약·변화·인용·MBTI 축별 근거·가방), 궁합 쌍, 어워드, 총평
+- `Report`: 제목, 한 줄 요약, 3~5막 줄거리, 멤버별(아키타입·한줄평·요약·명장면 1~2·자유 꼭지 2~3·인용 5·MBTI 축별 근거·가방), 궁합 쌍, 어워드(+수상자 인용), 총평
+  - 명장면·꼭지는 `{ title, text, quotes }`. 꼭지 제목은 사람마다 AI가 정한다. 연애·썸 꼭지는 만들지 않는다
+- 예전 모양(변화·스트레스·챙김 칸)으로 저장된 결과는 `src/lib/report/normalize.ts`가 읽을 때 꼭지로 옮긴다. 공유 스키마도 두 모양을 다 받는다
+- `SavedReport.contexts`: `quoteKey(인용)` → 앞뒤 2줄. `SavedReport.phrases`: 멤버 id → 말버릇·횟수·쓴 장면. 둘 다 예전 결과엔 없다
 - 스키마를 바꾸면 `llm.test.ts`의 strict 검사도 같이 통과해야 한다.

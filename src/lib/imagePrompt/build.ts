@@ -18,7 +18,7 @@ const clean = (s: string) =>
     .trim();
 
 const traits = (m: Member) =>
-  [m.archetype, m.humor, m.care]
+  [m.archetype, m.humor, m.oneLiner]
     .map(clean)
     .filter((t) => t && !isSensitive(t))
     .join(" / ");

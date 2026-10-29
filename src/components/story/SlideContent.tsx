@@ -176,7 +176,7 @@ export function SlideContent({ slide, saved, ink, actions }: { slide: Slide; sav
           <p className="text-[17px] font-bold">{m.name}</p>
           <p className="mt-auto text-[13px] font-semibold opacity-75">아키타입</p>
           <p className="mt-1 text-[34px] leading-[1.15] font-black tracking-[-0.03em]">{m.archetype}</p>
-          <Line>{m.summary}</Line>
+          <Line>{m.oneLiner ? `“${m.oneLiner}”` : m.summary}</Line>
           {st && <p className="tabular mt-6 text-[14px] opacity-80">메시지 {n(st.messages)}개 · 그날 첫 마디 {n(st.firstOfDay)}번</p>}
         </>
       );
@@ -221,10 +221,13 @@ export function SlideContent({ slide, saved, ink, actions }: { slide: Slide; sav
         <>
           <p className="font-pixel text-[15px]">어워드</p>
           <ul className="mt-auto flex flex-col gap-3">
-            {report.awards.slice(0, 8).map((a) => (
+            {report.awards.slice(0, 6).map((a) => (
               <li key={a.title}>
                 <p className="font-pixel text-[13px] opacity-80">{clean(a.title)}</p>
                 <p className="text-[20px] font-extrabold">{a.winner}</p>
+                {a.quotes?.[0] && (
+                  <p className="mt-0.5 line-clamp-1 text-[13px] opacity-80">&ldquo;{a.quotes[0].text}&rdquo;</p>
+                )}
               </li>
             ))}
           </ul>

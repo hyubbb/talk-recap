@@ -2,7 +2,7 @@ import "server-only";
 import { connection } from "next/server";
 import { getSupabase, type ReportRow } from "@/lib/supabase/server";
 import { isValidSlug } from "./token";
-import type { SavedReport } from "@/lib/report/storage";
+import { normalizeSaved, type SavedReport } from "@/lib/report/storage";
 
 export interface SharedReport {
   saved: SavedReport;
@@ -27,7 +27,7 @@ export async function getSharedReport(id: string): Promise<SharedReport | null> 
     return null;
   }
   if (!data) return null;
-  return { saved: data.payload as SavedReport, expiresAt: data.expires_at };
+  return { saved: normalizeSaved(data.payload as SavedReport), expiresAt: data.expires_at };
 }
 
 export async function incrementView(id: string): Promise<void> {

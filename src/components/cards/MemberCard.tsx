@@ -29,6 +29,7 @@ export const MemberCard = forwardRef<HTMLDivElement, { member: Member; color: st
       </div>
       <p className="mt-[8%] text-[13px] font-semibold opacity-75">아키타입</p>
       <p className="mt-1 text-[28px] leading-[1.2] font-extrabold tracking-[-0.03em]">{member.archetype}</p>
+      {member.oneLiner && <p className="mt-2 text-[15px] leading-[1.45] font-semibold opacity-85">&ldquo;{member.oneLiner}&rdquo;</p>}
       {step >= 2 && (
         <div className="mt-[8%] bubble-in">
           <p className="text-[13px] font-semibold opacity-75">행동으로 본 MBTI</p>

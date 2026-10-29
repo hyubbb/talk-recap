@@ -10,6 +10,8 @@ import { memberColor } from "@/lib/ui/colors";
 import type { ChunkNotes, Report } from "@/lib/llm/schema";
 import type { ChunkText, DateRange } from "@/workers/protocol";
 import type { MemberGroup } from "@/lib/kakao/members";
+import { reportQuotes } from "@/lib/report/context";
+import type { ContextRequest, ContextResult } from "@/hooks/useAnalyzeWorker";
 
 const CONCURRENCY = 3;
 const MAX_TRIES = 3;
@@ -31,6 +33,7 @@ const md = (ts: number) => {
  */
 export function useRunAnalysis(
   chunkTexts: (groups: MemberGroup[], range: DateRange | null) => Promise<ChunkText[]>,
+  contexts?: (req: ContextRequest) => Promise<ContextResult>,
 ) {
   const store = useStore();
   const setState = useSetAtom(analysisAtom);
@@ -101,6 +104,20 @@ export function useRunAnalysis(
       usage.input += synth.usage.input;
       usage.output += synth.usage.output;
 
+      // 결과에 쓰인 인용의 앞뒤 대화와 말버릇 장면을 브라우저 워커에서 뽑는다 (실패해도 결과는 저장)
+      let extra: ContextResult | null = null;
+      if (contexts) {
+        const phraseMembers = people.map((p) => ({
+          id: p.id,
+          name: p.displayName,
+          phrases: stats.members.find((m) => m.id === p.id)?.catchphrases ?? [],
+        }));
+        extra = await Promise.race([
+          contexts({ groups, range: store.get(rangeAtom), quotes: reportQuotes(synth.report), phraseMembers }),
+          new Promise<null>((res) => setTimeout(() => res(null), 15_000)),
+        ]).catch(() => null);
+      }
+
       const id = newReportId();
       saveReport({
         id,
@@ -111,6 +128,7 @@ export function useRunAnalysis(
         report: synth.report,
         usage,
         droppedQuotes: dropped,
+        ...(extra ? { contexts: extra.contexts, phrases: extra.phrases } : {}),
       });
       setState({ kind: "done", reportId: id });
       return id;

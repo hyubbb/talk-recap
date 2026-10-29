@@ -26,8 +26,8 @@ export default function NewPage() {
   const phase = useAtomValue(phaseAtom);
   const meta = useAtomValue(metaAtom);
   const [consent, setConsent] = useAtom(consentAtom);
-  const { parse, recompute, chunkTexts } = useAnalyzeWorker();
-  const run = useRunAnalysis(chunkTexts);
+  const { parse, recompute, chunkTexts, contexts } = useAnalyzeWorker();
+  const run = useRunAnalysis(chunkTexts, contexts);
   const analysis = useAtomValue(analysisAtom);
   const router = useRouter();
   const store = useStore();

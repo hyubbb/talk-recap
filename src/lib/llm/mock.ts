@@ -13,7 +13,7 @@ export function mockChunkNotes(chunkText: string, members: string[]): ChunkNotes
     const m = line.match(LINE);
     if (!m || m[3].startsWith("(") || m[3].length < 4 || m[3].length > 40) continue;
     const list = byMember.get(m[2]) ?? [];
-    if (list.length < 30) list.push({ date: m[1], who: m[2], text: m[3] });
+    if (list.length < 40) list.push({ date: m[1], who: m[2], text: m[3] });
     byMember.set(m[2], list);
   }
   const pick = <T>(a: T[], n: number) => a.filter((_, i) => i % Math.max(1, Math.floor(a.length / n)) === 0).slice(0, n);
@@ -30,7 +30,7 @@ export function mockChunkNotes(chunkText: string, members: string[]): ChunkNotes
       innerVoice: "(목업) 속마음",
       claimedMbti: null,
       mbtiClues: { ei: "(목업)", sn: "(목업)", tf: "(목업)", jp: "(목업)" },
-      quotes: pick(byMember.get(name) ?? [], 3),
+      quotes: pick(byMember.get(name) ?? [], 6),
     })),
     relations: present.length > 1 ? [{ from: present[0], to: present[1], kind: "tease", note: "(목업) 서로 놀림" }] : [],
     legends: [{ date: first, title: "(목업) 레전드 장면", text: "(목업)" }],
@@ -43,7 +43,9 @@ const MOCK_BAG = ["휴대폰", "무선 이어폰", "보조배터리", "컵라면
 const TYPES = ["ENFP", "INFJ", "INFP", "ISFJ", "ISTP", "ESTJ", "ENTP", "ISFP"];
 
 export function mockReport(notes: ChunkNotes[], members: string[]): Report {
-  const quotes = (name: string) => notes.flatMap((n) => n.members.find((m) => m.name === name)?.quotes ?? []).slice(0, 3);
+  const all = (name: string) => notes.flatMap((n) => n.members.find((m) => m.name === name)?.quotes ?? []);
+  const quotes = (name: string) => all(name).slice(0, 5);
+  const SECTION_TITLES = ["(목업) 생활력", "(목업) 드립 스타일", "(목업) 약속 잡기", "(목업) 먹부림", "(목업) 사진 투척", "(목업) 새벽 감성"];
   return {
     title: "(목업) 우리 방 리포트",
     oneLiner: "(목업) API 키를 넣으면 진짜 분석으로 바뀌어요.",
@@ -51,11 +53,15 @@ export function mockReport(notes: ChunkNotes[], members: string[]): Report {
     members: members.map((name, i) => ({
       name,
       archetype: "(목업) 아키타입",
-      summary: "(목업) 한 줄 요약",
-      change: "(목업) 기간 동안의 변화",
+      oneLiner: "(목업) 한줄평 펀치라인",
+      summary: "(목업) 이 사람의 포지션",
       humor: "(목업)",
-      stress: "(목업)",
-      care: "(목업)",
+      scenes: [{ title: "(목업) 명장면", text: "(목업) 무슨 일이 있었는지", quotes: all(name).slice(0, 2) }],
+      sections: [0, 1].map((k) => ({
+        title: SECTION_TITLES[(i * 2 + k) % SECTION_TITLES.length],
+        text: "(목업) 구체적인 일화",
+        quotes: all(name).slice(2 + k, 3 + k),
+      })),
       quotes: quotes(name),
       mbti: {
         type: TYPES[i % TYPES.length],
@@ -75,7 +81,12 @@ export function mockReport(notes: ChunkNotes[], members: string[]): Report {
       members.length > 1
         ? [{ a: members[0], b: members[1], score: 77, label: "(목업) 티키타카", reason: "(목업)" }]
         : [],
-    awards: [{ title: "(목업) 수다왕", winner: members[0] ?? "", reason: "(목업)" }],
+    awards: members.slice(0, 3).map((name, i) => ({
+      title: ["(목업) 수다왕", "(목업) 리액션상", "(목업) 새벽 지킴이상"][i],
+      winner: name,
+      reason: "(목업)",
+      quotes: all(name).slice(-1),
+    })),
     closing: "(목업) 총평",
   };
 }

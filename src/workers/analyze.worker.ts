@@ -5,6 +5,7 @@ import { suggestMembers, type MemberGroup } from "@/lib/kakao/members";
 import { computeStats } from "@/lib/kakao/stats";
 import { maskSampleLine } from "@/lib/kakao/formatReport";
 import { chunkMessages } from "@/lib/kakao/chunk";
+import { extractContexts, phraseSamples } from "@/lib/report/context";
 import type { ChatMessage, ExportFormat } from "@/lib/kakao/types";
 import type { DateRange, WorkerRequest, WorkerResponse } from "./protocol";
 
@@ -85,6 +86,16 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       const nameOf = new Map(req.groups.flatMap((g) => g.names.map((n) => [n, g.displayName] as const)));
       const chunks = chunkMessages(picked, (a) => (include.has(a) ? nameOf.get(a) ?? a : null));
       post({ type: "chunkTexts", chunks: chunks.map((c) => ({ index: c.index, start: c.start, end: c.end, text: c.text })) });
+    } else if (req.type === "contexts") {
+      const picked = inRange(req.range);
+      const include = new Set(req.groups.filter((g) => !g.isBot).flatMap((g) => g.names));
+      const nameMap = new Map(req.groups.flatMap((g) => g.names.map((n) => [n, g.displayName] as const)));
+      const nameOf = (a: string) => (include.has(a) ? nameMap.get(a) ?? a : null);
+      post({
+        type: "contexts",
+        contexts: extractContexts(picked, nameOf, req.quotes),
+        phrases: phraseSamples(picked, nameOf, req.phraseMembers),
+      });
     } else if (req.type === "recompute") {
       post({ type: "recomputed", ...summarize(req.groups, req.aliases, req.range) });
     }

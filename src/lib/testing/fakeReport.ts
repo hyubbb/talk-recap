@@ -41,7 +41,9 @@ export function fakeReport(count = 5, quotesEach = 6): SavedReport {
       members: names.map((name, i) => ({
         name,
         archetype: `아키타입 ${i}`,
-        summary: "요약", change: "변화", humor: "드립", stress: "한숨", care: "챙김",
+        oneLiner: "한줄평", summary: "요약", humor: "드립",
+        scenes: [{ title: "명장면", text: "있었던 일", quotes: [{ date: "7/9", who: name, text: `${name}의 명장면 대사` }] }],
+        sections: [{ title: ["생활력", "먹부림", "덕질", "드립", "약속"][i] ?? "꼭지", text: "일화", quotes: [{ date: "7/10", who: name, text: `${name}의 꼭지 근거` }] }],
         quotes: Array.from({ length: quotesEach }, (_, k) => ({ date: `7/${k + 1}`, who: name, text: `${name}의 명언 ${k}번째` })),
         mbti: { type: "ENFP", confidence: 0.6, claimed: i === 0 ? "INTJ" : null, ei: axis("E"), sn: axis("N"), tf: axis("F"), jp: axis("P") },
         bag: { bag: "에코백", items: [{ item: "컵라면", reason: "야식" }, { item: "보조배터리", reason: "방전" }] },
@@ -49,7 +51,7 @@ export function fakeReport(count = 5, quotesEach = 6): SavedReport {
       pairs: [
         { a: names[0], b: names[1], score: 90, label: "티키타카", reason: "말이 잘 통함" },
       ],
-      awards: [{ title: "수다왕", winner: names[0], reason: "1000개" }],
+      awards: [{ title: "수다왕", winner: names[0], reason: "1000개", quotes: [{ date: "7/1", who: names[0], text: `${names[0]}의 명언 0번째` }] }],
       closing: "다음 100일도 잘 부탁해요",
     },
     usage: { input: 0, output: 0 },

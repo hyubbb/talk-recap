@@ -41,6 +41,9 @@ export type ChunkNotes = z.infer<typeof chunkNotesSchema>;
 
 // ── 종합 리포트 ───────────────────────────────────────────────
 const axis = z.object({ letter: z.string(), reason: z.string() });
+/** 제목 + 이야기 + 근거 원문 */
+const storyBlock = z.object({ title: z.string(), text: z.string(), quotes: z.array(quote) });
+export type StoryBlock = z.infer<typeof storyBlock>;
 
 export const reportSchema = z.object({
   title: z.string(),
@@ -50,11 +53,15 @@ export const reportSchema = z.object({
     z.object({
       name: z.string(),
       archetype: z.string(),
+      /** 한줄평 펀치라인 */
+      oneLiner: z.string(),
       summary: z.string(),
-      change: z.string(),
       humor: z.string(),
-      stress: z.string(),
-      care: z.string(),
+      /** 명장면 1~2개 (이야기 + 그 장면 원문) */
+      scenes: z.array(storyBlock),
+      /** 이 사람만의 꼭지 2~3개. 제목은 사람마다 다르게 (생활력, 직장 생존기…). 근거 인용 필수 */
+      sections: z.array(storyBlock),
+      /** 가장 그 사람다운 원문 5개 */
       quotes: z.array(quote),
       mbti: z.object({
         type: z.string(),
@@ -74,7 +81,8 @@ export const reportSchema = z.object({
   pairs: z.array(
     z.object({ a: z.string(), b: z.string(), score: z.number(), label: z.string(), reason: z.string() }),
   ),
-  awards: z.array(z.object({ title: z.string(), winner: z.string(), reason: z.string() })),
+  /** quotes: 수상 근거가 되는 수상자 본인의 원문 1~2개 */
+  awards: z.array(z.object({ title: z.string(), winner: z.string(), reason: z.string(), quotes: z.array(quote) })),
   closing: z.string(),
 });
 export type Report = z.infer<typeof reportSchema>;

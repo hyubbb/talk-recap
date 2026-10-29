@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import type { SavedReport } from "@/lib/report/storage";
-import type { Quote } from "@/lib/llm/schema";
+import type { Quote, StoryBlock } from "@/lib/llm/schema";
+import type { PhraseSample } from "@/lib/report/context";
+import { isSensitive } from "@/lib/quiz/sensitive";
+import { ContextsProvider, ContextView, QuoteList } from "./Quotes";
 import { initialOf } from "@/lib/ui/colors";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { ObjectionSlot } from "@/components/objection/ObjectionSlot";
 import { BagCard } from "@/components/bag/BagCard";
 import { MemberCard } from "@/components/cards/MemberCard";
@@ -35,8 +38,21 @@ export function ReportView({ saved, shared, actions }: Props) {
   const color = (name: string) => byName.get(name)?.color ?? "var(--color-haze)";
   const pairs = [...report.pairs].sort((a, b) => b.score - a.score);
   const isMock = saved.provider === "mock";
+  const idOf = new Map(members.map((m) => [m.name, m.id]));
+  // 말버릇: 분석 때 뽑은 장면이 있으면 그걸, 예전 결과면 통계의 말버릇만 (장면 없이)
+  const phrasesOf = (name: string): PhraseSample[] => {
+    const id = idOf.get(name);
+    if (!id) return [];
+    if (saved.phrases?.[id]) return saved.phrases[id];
+    const st = stats.members.find((x) => x.id === id);
+    return (st?.catchphrases ?? [])
+      .filter((p) => !isSensitive(p.text))
+      .slice(0, 4)
+      .map((p) => ({ ...p, context: null }));
+  };
 
   return (
+    <ContextsProvider value={saved.contexts ?? {}}>
     <main className="mx-auto flex w-full max-w-[560px] flex-col px-5 pb-24">
       <header className="flex items-center justify-between py-5">
         <Link href="/" className="font-pixel text-[15px]">
@@ -100,13 +116,17 @@ export function ReportView({ saved, shared, actions }: Props) {
                   {m.name}
                 </div>
                 <p className="mt-2 text-[24px] leading-[1.25] font-extrabold tracking-[-0.02em]">{m.archetype}</p>
+                {m.oneLiner && <p className="mt-2 text-[15px] leading-[1.5] font-semibold opacity-80">&ldquo;{m.oneLiner}&rdquo;</p>}
               </div>
-              <div className="flex flex-col gap-3 p-5 text-[15px] leading-[1.6]">
+              <div className="flex flex-col gap-4 p-5 text-[15px] leading-[1.6]">
                 <p>{m.summary}</p>
-                <Field label="변화">{m.change}</Field>
-                <Field label="유머">{m.humor}</Field>
-                <Field label="스트레스 받을 때">{m.stress}</Field>
-                <Field label="챙기는 방식">{m.care}</Field>
+                <Phrases samples={phrasesOf(m.name)} />
+                {m.scenes.map((b, i) => (
+                  <StoryCard key={`scene-${i}`} label="명장면" block={b} />
+                ))}
+                {m.sections.map((b, i) => (
+                  <StoryCard key={`sec-${i}`} block={b} />
+                ))}
                 <Evidence quotes={m.quotes} />
                 <ObjectionSlot target={`member:${m.name}`} owner={m.name} />
                 <MemberCardSave member={m} color={color(m.name)} />
@@ -186,6 +206,11 @@ export function ReportView({ saved, shared, actions }: Props) {
                 {a.winner}
               </p>
               <p className="mt-1 text-[14px] leading-[1.55] text-haze">{a.reason}</p>
+              {a.quotes.length > 0 && (
+                <div className="rounded-[14px] bg-dusk-2 px-4 py-3">
+                  <QuoteList quotes={a.quotes} />
+                </div>
+              )}
               <ObjectionSlot target={`award:${i}`} owner={a.winner} />
             </li>
           ))}
@@ -207,6 +232,7 @@ export function ReportView({ saved, shared, actions }: Props) {
         AI&rdquo; 하고 웃어 넘겨 주세요. 진지하게 받아들이면 단톡방에 평화가 사라져요.
       </p>
     </main>
+    </ContextsProvider>
   );
 }
 
@@ -219,29 +245,65 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <p>
-      <span className="mr-2 text-[13px] text-haze">{label}</span>
-      {children}
-    </p>
-  );
-}
-
 function Evidence({ quotes }: { quotes: Quote[] }) {
   if (!quotes.length) return null;
   return (
     <details className="rounded-[14px] bg-dusk-2 px-4 py-3">
       <summary className="cursor-pointer text-[13px] font-semibold text-haze">근거 {quotes.length}개 보기</summary>
-      <ul className="mt-2 flex flex-col gap-2">
-        {quotes.map((q, i) => (
-          <li key={i} className="text-[14px] leading-[1.55]">
-            <span className="tabular mr-2 text-[12px] text-haze">{q.date}</span>
-            {q.text}
+      <div className="mt-2">
+        <QuoteList quotes={quotes} />
+      </div>
+    </details>
+  );
+}
+
+/** 명장면·꼭지: 제목 + 이야기 + 그 장면 원문 */
+function StoryCard({ label, block }: { label?: string; block: StoryBlock }) {
+  return (
+    <section className="rounded-[14px] bg-dusk-2 p-4">
+      <h3 className="text-[14px] font-bold text-spark">
+        {label && <span className="mr-1.5 text-haze">{label}</span>}
+        {block.title}
+      </h3>
+      <p className="mt-1.5 text-[15px] leading-[1.6]">{block.text}</p>
+      {block.quotes.length > 0 && (
+        <div className="mt-3 border-t border-night/60 pt-3">
+          <QuoteList quotes={block.quotes} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** 말버릇: 실제로 친 문장 + 횟수. 누르면 그 말을 쓴 장면(앞뒤 2줄) */
+function Phrases({ samples }: { samples: PhraseSample[] }) {
+  const [open, setOpen] = useState<number | null>(null);
+  if (!samples.length) return null;
+  const cur = open === null ? null : samples[open];
+  return (
+    <div>
+      <p className="text-[13px] font-semibold text-haze">말버릇</p>
+      <ul className="mt-2 flex flex-wrap gap-1.5">
+        {samples.map((p, i) => (
+          <li key={p.text}>
+            <button
+              type="button"
+              disabled={!p.context}
+              onClick={() => setOpen(open === i ? null : i)}
+              aria-pressed={open === i}
+              className={`rounded-full px-3 py-1.5 text-[14px] transition disabled:cursor-default ${open === i ? "bg-spark text-spark-ink" : "bg-dusk-2"}`}
+            >
+              <span className="font-semibold">&ldquo;{p.text}&rdquo;</span>
+              <span className="tabular ml-1.5 text-[12px] opacity-70">×{p.count.toLocaleString()}</span>
+            </button>
           </li>
         ))}
       </ul>
-    </details>
+      {cur?.context && <ContextView block={cur.context} />}
+      {samples.some((p) => p.context) && open === null && (
+        <p className="mt-1.5 text-[12px] text-haze">누르면 실제로 쓴 장면이 보여요</p>
+      )}
+    </div>
   );
 }
 
