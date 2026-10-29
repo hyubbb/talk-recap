@@ -10,6 +10,18 @@
 - LLM용 구간 분할(날짜 경계 우선)과 민감정보 마스킹
 - 업로드 미리보기 화면 (`/new`) — 파싱은 전부 브라우저 Web Worker에서 하고 서버로 보내지 않음
 
+## AI 분석 켜기
+
+```bash
+cp .env.example .env.local   # OPENAI_API_KEY 채우기
+npm run dev
+```
+
+- 키가 없으면 자동으로 목업 모드가 돼서 가짜 결과로 화면 흐름만 확인할 수 있다.
+- `OPENAI_CHUNK_MODEL`(구간 분석, 여러 번 호출)은 저렴한 모델, `OPENAI_SYNTH_MODEL`(종합, 1번)은 좋은 모델을 권장.
+- 구간 분석은 동시 3개, 실패하면 최대 3번까지 다시 시도한다. 원문에 없는 인용은 자동으로 버린다.
+- 결과는 지금은 분석한 브라우저(localStorage)에만 저장된다. 공유 링크는 Supabase 연결 후.
+
 ## 개발
 
 ```bash

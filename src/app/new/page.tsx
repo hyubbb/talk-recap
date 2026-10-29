@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { useAtom, useAtomValue, useStore } from "jotai";
-import { useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { AnalysisProgress } from "@/components/analysis/AnalysisProgress";
 import { Dropzone } from "@/components/upload/Dropzone";
 import { MemberEditor } from "@/components/upload/MemberEditor";
 import { RangePicker } from "@/components/upload/RangePicker";
 import { StatsPreview } from "@/components/upload/StatsPreview";
 import { useAnalyzeWorker } from "@/hooks/useAnalyzeWorker";
+import { useRunAnalysis } from "@/hooks/useRunAnalysis";
+import { analysisAtom } from "@/state/analysis";
 import { aliasesAtom, consentAtom, groupsAtom, metaAtom, phaseAtom, rangeAtom } from "@/state/upload";
 import type { MemberGroup } from "@/lib/kakao/members";
 import type { DateRange } from "@/workers/protocol";
@@ -18,8 +22,22 @@ export default function NewPage() {
   const phase = useAtomValue(phaseAtom);
   const meta = useAtomValue(metaAtom);
   const [consent, setConsent] = useAtom(consentAtom);
-  const { parse, recompute } = useAnalyzeWorker();
+  const { parse, recompute, chunkTexts } = useAnalyzeWorker();
+  const run = useRunAnalysis(chunkTexts);
+  const analysis = useAtomValue(analysisAtom);
+  const router = useRouter();
+  const progressRef = useRef<HTMLDivElement>(null);
   const store = useStore();
+
+  useEffect(() => {
+    if (analysis.kind === "done") router.push(`/r/${analysis.reportId}`);
+  }, [analysis, router]);
+
+  const start = () => {
+    run.mutate();
+    requestAnimationFrame(() => progressRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
+  const running = analysis.kind === "running";
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 멤버·별명·기간 중 무엇이 바뀌든 최신 값 셋을 모아 한 번만 다시 계산한다
@@ -67,6 +85,10 @@ export default function NewPage() {
             {meta.unparsedLines > 0 && ` · 해석 못 한 줄 ${meta.unparsedLines}개`}
           </p>
 
+          <div ref={progressRef} className="mt-6 scroll-mt-4">
+            <AnalysisProgress />
+          </div>
+
           <h2 className="mt-10 text-[20px] font-bold">분석할 기간</h2>
           <p className="mt-1 mb-4 text-[14px] leading-[1.55] text-haze">
             올린 대화 중 일부 기간만 골라서 분석할 수 있어요.
@@ -95,10 +117,11 @@ export default function NewPage() {
               </label>
               <button
                 type="button"
-                disabled
+                disabled={!consent || running}
+                onClick={start}
                 className="h-14 w-full rounded-[16px] bg-spark text-[17px] font-bold text-spark-ink disabled:opacity-40"
               >
-                AI 분석 시작 (다음 단계에서 연결)
+                {running ? "분석하는 중…" : analysis.kind === "error" ? "다시 분석하기" : "AI 분석 시작"}
               </button>
             </div>
           </div>

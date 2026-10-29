@@ -1,0 +1,218 @@
+"use client";
+
+import Link from "next/link";
+import type { SavedReport } from "@/lib/report/storage";
+import type { Quote } from "@/lib/llm/schema";
+import { initialOf } from "@/lib/ui/colors";
+
+const fmt = (ts: number) => {
+  const d = new Date(ts);
+  return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}`;
+};
+
+export function ReportView({ saved }: { saved: SavedReport }) {
+  const { report, stats, members } = saved;
+  const byName = new Map(members.map((m) => [m.name, m]));
+  const color = (name: string) => byName.get(name)?.color ?? "var(--color-haze)";
+  const pairs = [...report.pairs].sort((a, b) => b.score - a.score);
+  const isMock = saved.provider === "mock";
+
+  return (
+    <main className="mx-auto flex w-full max-w-[560px] flex-col px-5 pb-24">
+      <header className="flex items-center justify-between py-5">
+        <Link href="/" className="font-pixel text-[15px]">
+          톡방 Wrapped
+        </Link>
+        <Link href="/new" className="text-[14px] text-haze hover:text-moon">
+          새로 분석
+        </Link>
+      </header>
+
+      {isMock && (
+        <p className="mb-6 rounded-[14px] bg-dusk p-4 text-[14px] leading-[1.55] text-haze">
+          지금은 목업 결과예요. <code className="text-moon">.env.local</code>에 <code className="text-moon">OPENAI_API_KEY</code>를
+          넣고 서버를 다시 켜면 진짜 분석이 나와요.
+        </p>
+      )}
+
+      <section className="pt-4">
+        <p className="tabular text-[14px] text-haze">
+          {fmt(stats.start)} ~ {fmt(stats.end)} · {stats.days}일 · 메시지 {stats.totalMessages.toLocaleString()}개
+        </p>
+        <h1 className="mt-2 text-[32px] leading-[1.2] font-extrabold tracking-[-0.03em]">{report.title}</h1>
+        <p className="mt-3 text-[17px] leading-[1.6]">{report.oneLiner}</p>
+      </section>
+
+      <Section title="줄거리">
+        <ol className="flex flex-col gap-4">
+          {report.acts.map((a, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="font-pixel tabular mt-0.5 w-10 shrink-0 text-spark">{i + 1}막</span>
+              <div>
+                <p className="text-[16px] font-bold">{a.title}</p>
+                <p className="text-[13px] text-haze">{a.period}</p>
+                <p className="mt-1 text-[15px] leading-[1.6]">{a.summary}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </Section>
+
+      <Section title="멤버">
+        <div className="flex flex-col gap-4">
+          {report.members.map((m) => (
+            <article key={m.name} className="overflow-hidden rounded-[var(--radius-card)] bg-dusk">
+              <div className="p-5" style={{ background: color(m.name), color: "var(--color-night)" }}>
+                <div className="flex items-center gap-2 text-[14px] font-semibold">
+                  <span className="grid size-6 place-items-center rounded-full bg-night/15 text-[12px]">
+                    {initialOf(m.name)}
+                  </span>
+                  {m.name}
+                </div>
+                <p className="mt-2 text-[24px] leading-[1.25] font-extrabold tracking-[-0.02em]">{m.archetype}</p>
+              </div>
+              <div className="flex flex-col gap-3 p-5 text-[15px] leading-[1.6]">
+                <p>{m.summary}</p>
+                <Field label="변화">{m.change}</Field>
+                <Field label="유머">{m.humor}</Field>
+                <Field label="스트레스 받을 때">{m.stress}</Field>
+                <Field label="챙기는 방식">{m.care}</Field>
+                <Evidence quotes={m.quotes} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="궁합">
+        <ul className="flex flex-col gap-3">
+          {pairs.map((p, i) => (
+            <li key={`${p.a}-${p.b}`} className={`rounded-[var(--radius-card)] p-4 ${i === 0 ? "bg-dusk-2" : "bg-dusk"}`}>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[15px] font-semibold">
+                  <span style={{ color: color(p.a) }}>{p.a}</span>
+                  <span className="text-haze"> × </span>
+                  <span style={{ color: color(p.b) }}>{p.b}</span>
+                </p>
+                <span className="font-pixel tabular text-[18px] text-spark">{p.score}</span>
+              </div>
+              <p className="mt-1 text-[14px] font-semibold">{p.label}</p>
+              <p className="mt-1 text-[14px] leading-[1.55] text-haze">{p.reason}</p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <Section title="MBTI 추론">
+        <div className="flex flex-col gap-3">
+          {report.members.map((m) => (
+            <details key={m.name} className="rounded-[var(--radius-card)] bg-dusk p-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                <span className="text-[15px] font-semibold" style={{ color: color(m.name) }}>
+                  {m.name}
+                </span>
+                <span className="flex items-baseline gap-2">
+                  {m.mbti.claimed && (
+                    <span className="text-[13px] text-haze">
+                      본인 주장 <s>{m.mbti.claimed}</s>
+                    </span>
+                  )}
+                  <span className="font-pixel text-[20px]">{m.mbti.type}</span>
+                  <span className="tabular text-[12px] text-haze">{Math.round(m.mbti.confidence * 100)}%</span>
+                </span>
+              </summary>
+              <ul className="mt-3 flex flex-col gap-2 text-[14px] leading-[1.55]">
+                {(["ei", "sn", "tf", "jp"] as const).map((k) => (
+                  <li key={k} className="flex gap-3">
+                    <span className="font-pixel w-4 shrink-0 text-spark">{m.mbti[k].letter}</span>
+                    <span className="text-haze">{m.mbti[k].reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="What's in my bag">
+        <div className="flex flex-col gap-4">
+          {report.members.map((m) => (
+            <div key={m.name} className="rounded-[var(--radius-card)] bg-dusk p-5">
+              <p className="text-[15px] font-semibold" style={{ color: color(m.name) }}>
+                {m.name}
+              </p>
+              <p className="font-pixel mt-1 text-[15px]">{m.bag.bag}</p>
+              <ul className="mt-3 grid grid-cols-1 gap-2 text-[14px] leading-[1.5] sm:grid-cols-2">
+                {m.bag.items.map((it) => (
+                  <li key={it.item} className="rounded-[12px] bg-dusk-2 px-3 py-2">
+                    <span className="font-semibold">{it.item}</span>
+                    <span className="block text-[13px] text-haze">{it.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="어워드">
+        <ul className="flex flex-col gap-3">
+          {report.awards.map((a) => (
+            <li key={a.title} className="rounded-[var(--radius-card)] bg-dusk p-4">
+              <p className="font-pixel text-[14px] text-spark">{a.title}</p>
+              <p className="mt-1 text-[17px] font-bold" style={{ color: color(a.winner) }}>
+                {a.winner}
+              </p>
+              <p className="mt-1 text-[14px] leading-[1.55] text-haze">{a.reason}</p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <Section title="총평">
+        <p className="text-[17px] leading-[1.7]">{report.closing}</p>
+      </Section>
+
+      <p className="mt-12 text-[12px] leading-[1.6] text-haze">
+        분석 {saved.provider === "mock" ? "목업" : "OpenAI"} · 토큰 입력 {saved.usage.input.toLocaleString()} / 출력{" "}
+        {saved.usage.output.toLocaleString()} · 원문과 맞지 않아 뺀 인용 {saved.droppedQuotes}개. MBTI·궁합·가방은 대화로
+        추론한 놀이용 결과예요.
+      </p>
+    </main>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-12">
+      <h2 className="mb-4 text-[22px] font-bold tracking-[-0.02em]">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <p>
+      <span className="mr-2 text-[13px] text-haze">{label}</span>
+      {children}
+    </p>
+  );
+}
+
+function Evidence({ quotes }: { quotes: Quote[] }) {
+  if (!quotes.length) return null;
+  return (
+    <details className="rounded-[14px] bg-dusk-2 px-4 py-3">
+      <summary className="cursor-pointer text-[13px] font-semibold text-haze">근거 {quotes.length}개 보기</summary>
+      <ul className="mt-2 flex flex-col gap-2">
+        {quotes.map((q, i) => (
+          <li key={i} className="text-[14px] leading-[1.55]">
+            <span className="tabular mr-2 text-[12px] text-haze">{q.date}</span>
+            {q.text}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}

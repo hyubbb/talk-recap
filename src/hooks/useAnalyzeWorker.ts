@@ -13,11 +13,12 @@ import {
   statsAtom,
 } from "@/state/upload";
 import type { MemberGroup } from "@/lib/kakao/members";
-import type { DateRange, WorkerRequest, WorkerResponse } from "@/workers/protocol";
+import type { ChunkText, DateRange, WorkerRequest, WorkerResponse } from "@/workers/protocol";
 
 /** 파싱·통계 워커를 붙잡고, 결과를 jotai 상태로 흘려보낸다. */
 export function useAnalyzeWorker() {
   const workerRef = useRef<Worker | null>(null);
+  const pendingTexts = useRef<((c: ChunkText[]) => void) | null>(null);
   const setPhase = useSetAtom(phaseAtom);
   const setMeta = useSetAtom(metaAtom);
   const setGroups = useSetAtom(groupsAtom);
@@ -44,6 +45,9 @@ export function useAnalyzeWorker() {
         setStats(msg.stats);
         setChunks(msg.chunks);
         setRangeCount(msg.rangeCount);
+      } else if (msg.type === "chunkTexts") {
+        pendingTexts.current?.(msg.chunks);
+        pendingTexts.current = null;
       } else if (msg.type === "error") setPhase({ kind: "error", message: msg.message });
     };
     workerRef.current = w;
@@ -66,5 +70,15 @@ export function useAnalyzeWorker() {
     [],
   );
 
-  return { parse, recompute };
+  /** 분석 시작 직전에만 구간 원문을 받는다 */
+  const chunkTexts = useCallback(
+    (groups: MemberGroup[], range: DateRange | null) =>
+      new Promise<ChunkText[]>((resolve) => {
+        pendingTexts.current = resolve;
+        send({ type: "chunkTexts", groups, range });
+      }),
+    [],
+  );
+
+  return { parse, recompute, chunkTexts };
 }

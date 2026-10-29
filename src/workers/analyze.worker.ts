@@ -77,6 +77,12 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         stats: first.stats,
         chunks: first.chunks,
       });
+    } else if (req.type === "chunkTexts") {
+      const picked = inRange(req.range);
+      const include = new Set(req.groups.filter((g) => !g.isBot).flatMap((g) => g.names));
+      const nameOf = new Map(req.groups.flatMap((g) => g.names.map((n) => [n, g.displayName] as const)));
+      const chunks = chunkMessages(picked, (a) => (include.has(a) ? nameOf.get(a) ?? a : null));
+      post({ type: "chunkTexts", chunks: chunks.map((c) => ({ index: c.index, start: c.start, end: c.end, text: c.text })) });
     } else if (req.type === "recompute") {
       post({ type: "recomputed", ...summarize(req.groups, req.aliases, req.range) });
     }

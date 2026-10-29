@@ -15,7 +15,16 @@ export type WorkerRequest =
       groups: MemberGroup[];
       aliases: Record<string, string[]>;
       range: DateRange | null;
-    };
+    }
+  | { type: "chunkTexts"; groups: MemberGroup[]; range: DateRange | null };
+
+/** AI 분석을 시작할 때만 메인 스레드로 꺼내는 구간 원문 */
+export interface ChunkText {
+  index: number;
+  start: number;
+  end: number;
+  text: string;
+}
 
 export interface ChunkMeta {
   index: number;
@@ -41,4 +50,5 @@ export type WorkerResponse =
   | { type: "progress"; step: "reading" | "parsing" | "stats" }
   | { type: "parsed"; meta: ParseMeta; groups: MemberGroup[]; stats: RoomStats; chunks: ChunkMeta[] }
   | { type: "recomputed"; stats: RoomStats; chunks: ChunkMeta[]; rangeCount: number }
+  | { type: "chunkTexts"; chunks: ChunkText[] }
   | { type: "error"; message: string };
