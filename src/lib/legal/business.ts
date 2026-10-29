@@ -11,11 +11,11 @@ export const BUSINESS = {
   mailOrderNumber: "2022-서울송파-0417",
   taxType: "간이과세자",
   /** 사업장 주소 (사업자등록증 기준, 건물 번호까지) */
-  address: null as string | null,
+  address: "서울특별시 송파구 백제고분로19길 4-3, 602호" as string | null,
   /** 고객센터 전화 (070·대표번호·휴대폰 가능) */
-  phone: null as string | null,
+  phone: "010-4533-9426" as string | null,
   /** 문의·개인정보 요청 이메일 */
-  email: null as string | null,
+  email: "orae.official@gmail.com" as string | null,
   /** 개인정보 보호책임자 */
   privacyOfficer: "이창협",
 } as const;
