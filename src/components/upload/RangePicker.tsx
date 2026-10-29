@@ -3,6 +3,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { chunksAtom, metaAtom, rangeAtom, rangeCountAtom } from "@/state/upload";
 import type { DateRange } from "@/workers/protocol";
+import { priceLabel, productForDays, spanDays } from "@/lib/legal/business";
 
 const DAY = 86_400_000;
 const toInput = (ts: number) => new Date(ts).toISOString().slice(0, 10);
@@ -12,8 +13,8 @@ const fmt = (ts: number) => {
   return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}`;
 };
 
+// 요금제 기간에 맞춘 빠른 선택 (최근 100일 = 900원, 최근 1년 = 1500원)
 const PRESETS = [
-  { label: "최근 30일", days: 30 },
   { label: "최근 100일", days: 100 },
   { label: "최근 1년", days: 365 },
 ];
@@ -30,7 +31,8 @@ export function RangePicker({ onChange }: { onChange: (range: DateRange | null) 
   const last = dayStart(meta.lastTs) + DAY - 1;
   const totalDays = Math.round((last + 1 - first) / DAY);
   const cur = range ?? { from: first, to: last };
-  const curDays = Math.round((dayStart(cur.to) + DAY - cur.from) / DAY);
+  const curDays = spanDays(cur.from, cur.to);
+  const product = productForDays(curDays);
 
   const apply = (next: DateRange | null) => {
     const full = !next || (next.from <= first && next.to >= last);
@@ -40,8 +42,9 @@ export function RangePicker({ onChange }: { onChange: (range: DateRange | null) 
   };
 
   const preset = (days: number) => apply({ from: Math.max(first, dayStart(last) - (days - 1) * DAY), to: last });
+  // 대화가 프리셋보다 짧으면 그 프리셋은 '전체'와 같다
   const isPreset = (days: number) =>
-    range !== null && range.to === last && range.from === Math.max(first, dayStart(last) - (days - 1) * DAY);
+    days >= totalDays ? range === null : range !== null && range.to === last && range.from === dayStart(last) - (days - 1) * DAY;
 
   return (
     <div className="rounded-[var(--radius-card)] bg-dusk p-5">
@@ -50,14 +53,17 @@ export function RangePicker({ onChange }: { onChange: (range: DateRange | null) 
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="빠른 기간 선택">
-        <Chip active={range === null} onClick={() => apply(null)}>
-          전체
-        </Chip>
-        {PRESETS.filter((p) => p.days < totalDays).map((p) => (
+        {/* 대화가 100일 이하면 최근 1년은 최근 100일과 같으므로 숨긴다 */}
+        {PRESETS.filter((p, i) => i === 0 || totalDays > PRESETS[i - 1].days).map((p) => (
           <Chip key={p.days} active={isPreset(p.days)} onClick={() => preset(p.days)}>
-            {p.label}
+            {p.label} · {priceLabel(productForDays(p.days)!)}
           </Chip>
         ))}
+        {totalDays > 100 && (
+          <Chip active={range === null && !PRESETS.some((p) => p.days >= totalDays)} onClick={() => apply(null)}>
+            전체 {totalDays.toLocaleString()}일
+          </Chip>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -90,6 +96,14 @@ export function RangePicker({ onChange }: { onChange: (range: DateRange | null) 
         분석할 기간: <b className="tabular">{curDays.toLocaleString()}일</b>, 메시지{" "}
         <b className="tabular">{(rangeCount ?? meta.messageCount).toLocaleString()}개</b>
         <span className="text-haze"> · AI 분석 구간 {chunks.length}개</span>
+      </p>
+      <p className="mt-1 text-[14px]" aria-live="polite">
+        요금:{" "}
+        {product ? (
+          <b className="text-spark">{priceLabel(product)}</b>
+        ) : (
+          <span className="text-danger">1년을 넘는 기간은 분석할 수 없어요. 최근 1년 이하로 골라 주세요.</span>
+        )}
       </p>
       {chunks.length > 20 && (
         <p className="mt-1 text-[13px] text-haze">

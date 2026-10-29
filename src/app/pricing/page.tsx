@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PRODUCTS, won } from "@/lib/legal/business";
+import { PRODUCTS, priceLabel } from "@/lib/legal/business";
 import { PeriodNotice } from "@/components/pay/PeriodNotice";
 
 export const metadata: Metadata = { title: "요금 안내 · Talk Recap" };
@@ -26,7 +26,7 @@ export default function PricingPage() {
           <li key={p.id} className="rounded-[var(--radius-card)] bg-dusk p-5">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="text-[19px] font-bold">{p.name}</h2>
-              <p className="tabular text-[22px] font-extrabold">{won(p.price)}</p>
+              <p className="tabular text-[22px] font-extrabold">{priceLabel(p)}</p>
             </div>
             <p className="mt-1 text-[15px]">{p.scope}</p>
             <ul className="mt-3 flex flex-col gap-1 text-[13px] leading-[1.6] text-haze">

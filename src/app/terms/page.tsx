@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Article, LegalDoc, List } from "@/components/legal/LegalDoc";
-import { BUSINESS, POLICY_EFFECTIVE_DATE, PRODUCTS, SERVICE_PERIOD, pending, won } from "@/lib/legal/business";
+import { BUSINESS, POLICY_EFFECTIVE_DATE, PRODUCTS, SERVICE_PERIOD, pending, priceLabel } from "@/lib/legal/business";
 
 export const metadata: Metadata = { title: "이용약관 · Talk Recap" };
 
@@ -113,7 +113,7 @@ export default function TermsPage() {
               {PRODUCTS.map((p) => (
                 <tr key={p.id} className="align-top">
                   <td className="border-b border-dusk-2 px-3 py-2 font-semibold">{p.name}</td>
-                  <td className="tabular border-b border-dusk-2 px-3 py-2">{won(p.price)}</td>
+                  <td className="tabular border-b border-dusk-2 px-3 py-2">{priceLabel(p)}</td>
                   <td className="border-b border-dusk-2 px-3 py-2">{p.scope}</td>
                 </tr>
               ))}

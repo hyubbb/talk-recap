@@ -50,3 +50,12 @@ export const SERVICE_PERIOD = {
 } as const;
 
 export const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
+
+/** 요금 표기: "900원(100일)", "1500원(1년)" */
+export const periodLabel = (days: number) => (days >= 365 ? "1년" : `${days}일`);
+export const priceLabel = (p: { price: number; days: number }) => `${p.price}원(${periodLabel(p.days)})`;
+
+/** 분석 기간(일) 계산을 화면·결제에서 같은 식으로 쓴다 */
+export const DAY_MS = 86_400_000;
+export const spanDays = (from: number, to: number) =>
+  Math.round((Math.floor(to / DAY_MS) * DAY_MS + DAY_MS - Math.floor(from / DAY_MS) * DAY_MS) / DAY_MS);

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Article, LegalDoc, List, Table } from "@/components/legal/LegalDoc";
-import { BUSINESS, POLICY_EFFECTIVE_DATE, PRODUCTS, SERVICE_PERIOD, won } from "@/lib/legal/business";
+import { BUSINESS, POLICY_EFFECTIVE_DATE, PRODUCTS, SERVICE_PERIOD, priceLabel } from "@/lib/legal/business";
 
 export const metadata: Metadata = { title: "환불 정책 · Talk Recap" };
 
@@ -26,7 +26,7 @@ export default function RefundPage() {
           head={["상품", "가격(부가세 포함)", "내용", "제공 시점"]}
           rows={PRODUCTS.map((p) => [
             p.name,
-            won(p.price),
+            priceLabel(p),
             p.scope,
             "분석을 시작할 때 결제, 결제 즉시 분석해 보통 1~3분 안에 결과 제공",
           ])}

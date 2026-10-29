@@ -42,7 +42,7 @@ async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBReq
   });
 }
 
-export const savePending = (p: PendingAnalysis) => tx("readwrite", (s) => s.put(p));
+export const savePending = (p: Omit<PendingAnalysis, "createdAt">) => tx("readwrite", (s) => s.put({ ...p, createdAt: Date.now() }));
 
 export async function loadPending(orderNo: string): Promise<PendingAnalysis | null> {
   const p = (await tx<PendingAnalysis | undefined>("readonly", (s) => s.get(orderNo))) ?? null;

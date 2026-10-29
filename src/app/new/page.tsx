@@ -18,7 +18,7 @@ import { useRunAnalysis } from "@/hooks/useRunAnalysis";
 import { analysisAtom } from "@/state/analysis";
 import { aliasesAtom, consentAtom, groupsAtom, metaAtom, phaseAtom, rangeAtom } from "@/state/upload";
 import { useSetAtom } from "jotai";
-import { productForDays, won } from "@/lib/legal/business";
+import { priceLabel, productForDays, spanDays } from "@/lib/legal/business";
 import { clearPending, loadPending, savePending } from "@/lib/pay/pending";
 import type { PaidOrder } from "@/hooks/useRunAnalysis";
 import { statsAtom } from "@/state/upload";
@@ -59,7 +59,7 @@ export default function NewPage() {
 
   // 분석할 기간(일). 기간을 따로 고르지 않았으면 대화 전체 → 가격이 정해진다
   const span = range ?? (meta ? { from: meta.firstTs, to: meta.lastTs } : null);
-  const days = span ? Math.floor((span.to - span.from) / 86_400_000) + 1 : 0;
+  const days = span ? spanDays(span.from, span.to) : 0;
   const product = productForDays(days);
 
   const onFiles = (files: File[]) => {
@@ -143,7 +143,6 @@ export default function NewPage() {
         groups: store.get(groupsAtom),
         aliases: store.get(aliasesAtom),
         range: store.get(rangeAtom),
-        createdAt: Date.now(),
       });
       window.location.assign(b.checkoutPage);
     } catch (e) {
@@ -243,7 +242,7 @@ export default function NewPage() {
                 <div className="mb-3 text-[13px] leading-[1.5] text-haze">
                   {product ? (
                     <p>
-                      분석 기간 {days}일 · <b className="text-moon">{product.name} {won(product.price)}</b> (토스페이) · 결제하면 바로 분석이 시작돼요.{" "}
+                      분석 기간 {days}일 · <b className="text-moon">{priceLabel(product)}</b> 토스페이 결제 · 결제하면 바로 분석이 시작돼요.{" "}
                       <Link href="/pricing" className="underline">
                         요금
                       </Link>
@@ -283,7 +282,9 @@ export default function NewPage() {
                   : payBusy
                     ? "결제창 여는 중…"
                     : payMode && product
-                      ? `${won(product.price)} 결제하고 분석 시작`
+                      ? `${product.price}원 결제하고 분석 시작`
+                      : payMode
+                        ? "기간을 1년 이하로 골라 주세요"
                       : analysis.kind === "error"
                         ? "다시 분석하기"
                         : "AI 분석 시작"}
