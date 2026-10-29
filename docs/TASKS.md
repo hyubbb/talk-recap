@@ -62,7 +62,7 @@ UI는 키 없이 mock 모드로 확인할 수 있다. 실제 대화 파일은 �
 - "구경만 할게요" 선택지도 둔다
 
 완료 기준: 이름 선택 → 카드 공개 → 스토리 진입, 재방문 시 건너뜀.
-- 구현: `src/components/share/PickMe.tsx`, `SharedExperience.tsx`. 고른 이름은 `tokbang:me:{공유id}`에 저장, "바꾸기" 버튼으로 다시 고름
+- 구현: `src/components/share/PickMe.tsx`, `SharedExperience.tsx`. 고른 이름은 `talk-recap:me:{공유id}`에 저장, "바꾸기" 버튼으로 다시 고름
 
 ## T5. What's in my bag 픽셀 카드 — 완료
 

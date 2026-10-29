@@ -121,7 +121,7 @@ export function Story({
         <button type="button" onClick={() => go(-1)} disabled={index === 0} className="rounded-full px-3 py-2 text-[14px] text-haze disabled:opacity-30">
           이전
         </button>
-        <SaveImageButton target={frameRef} fileName={`tokbang-story-${index + 1}.png`} width={1080} height={1920} />
+        <SaveImageButton target={frameRef} fileName={`talk-recap-story-${index + 1}.png`} width={1080} height={1920} />
         <button
           type="button"
           onClick={() => go(1)}

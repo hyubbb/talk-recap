@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { storeKey } from "@/lib/storageKeys";
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((fn) => fn());
@@ -43,12 +44,12 @@ export function useLocalValue(key: string): [string | null | undefined, (v: stri
 
 /** 공유 링크에서 "나는 누구?"로 고른 이름. ""면 구경만, null이면 아직 안 고름 */
 export function useMe(shareId: string | null) {
-  return useLocalValue(shareId ? `tokbang:me:${shareId}` : "tokbang:me:local");
+  return useLocalValue(storeKey("me", shareId ?? "local"));
 }
 
 /** 브라우저별 익명 투표 키 */
 export function voterKey(): string {
-  const k = "tokbang:voter";
+  const k = storeKey("voter");
   let v = read(k);
   if (!v) {
     v = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");

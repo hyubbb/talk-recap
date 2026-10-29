@@ -5,8 +5,9 @@ import { useState, useSyncExternalStore } from "react";
 import type { SavedReport } from "@/lib/report/storage";
 import type { ShareInfo } from "@/lib/share/schema";
 import { DataNotice } from "@/components/DataNotice";
+import { storeKey } from "@/lib/storageKeys";
 
-const KEY = (reportId: string) => `tokbang:share:${reportId}`;
+const KEY = (reportId: string) => storeKey("share", reportId);
 const listeners = new Set<() => void>();
 const subscribe = (fn: () => void) => {
   listeners.add(fn);

@@ -262,7 +262,7 @@ function BagItem({ member, color }: { member: Member; color: string }) {
           ))}
         </ul>
       </details>
-      <SaveImageButton target={ref} fileName={`tokbang-bag-${member.name}.png`} className="self-start" label="가방 카드 저장" footer />
+      <SaveImageButton target={ref} fileName={`talk-recap-bag-${member.name}.png`} className="self-start" label="가방 카드 저장" footer />
     </div>
   );
 }
@@ -275,7 +275,7 @@ function MemberCardSave({ member, color }: { member: Member; color: string }) {
       <div className="pointer-events-none fixed top-0 -left-[10000px] w-[360px]" aria-hidden>
         <MemberCard ref={ref} member={member} color={color} />
       </div>
-      <SaveImageButton target={ref} fileName={`tokbang-card-${member.name}.png`} className="self-start" label="멤버 카드 저장" />
+      <SaveImageButton target={ref} fileName={`talk-recap-card-${member.name}.png`} className="self-start" label="멤버 카드 저장" />
     </>
   );
 }

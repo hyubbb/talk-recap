@@ -7,6 +7,7 @@ import type { SavedReport } from "@/lib/report/storage";
 import { buildQuiz, scoreOf } from "@/lib/quiz/build";
 import { cleanNickname, NICKNAME_MAX, resultLabel, type RankRow } from "@/lib/quiz/ranking";
 import { useLocalValue, useMe } from "@/hooks/useLocalValue";
+import { storeKey } from "@/lib/storageKeys";
 
 type Phase = "intro" | "playing" | "finished";
 
@@ -18,7 +19,7 @@ type Phase = "intro" | "playing" | "finished";
 export function QuizRunner({ saved, shareId }: { saved: SavedReport; shareId: string | null }) {
   const questions = useMemo(() => buildQuiz(saved), [saved]);
   const [me] = useMe(shareId);
-  const [storedName, setStoredName] = useLocalValue(`tokbang:quizname:${shareId ?? `local:${saved.id}`}`);
+  const [storedName, setStoredName] = useLocalValue(shareId ? storeKey("quizname", shareId) : storeKey("quizname", "local", saved.id));
   const [phase, setPhase] = useState<Phase>("intro");
   const [name, setName] = useState("");
   const [i, setI] = useState(0);

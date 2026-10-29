@@ -38,20 +38,20 @@
 Claude in Chrome 같은 브라우저 에이전트에 아래를 그대로 붙여넣으면 Supabase와 Vercel 설정을 화면을 보면서 진행한다.
 
 ```
-나는 Next.js 프로젝트 "tokbang-wrapped"(GitHub: hyubbb/tokbang-wrapped, 공개 레포)를
+나는 Next.js 프로젝트 "talk-recap"(GitHub: hyubbb/talk-recap, 공개 레포)를
 Supabase와 Vercel에 연결하려고 해. 브라우저 화면을 보면서 아래 순서대로 진행해 줘.
 각 단계가 끝나면 짧게 보고하고, 결제·요금제 업그레이드·기존 프로젝트 삭제가 필요한 화면이 나오면 멈추고 나한테 물어봐.
 API 키나 비밀번호는 대화창에 전체를 다시 출력하지 말고, 복사해서 붙여넣는 것만 해 줘.
 
 [1] Supabase 프로젝트 만들기
 - supabase.com 대시보드에서 New project를 만든다.
-- 이름: tokbang-wrapped / 지역: Northeast Asia (Seoul) / 플랜: Free
+- 이름: talk-recap / 지역: Northeast Asia (Seoul) / 플랜: Free
 - DB 비밀번호는 "Generate a password"로 만들고, 나중에 내가 직접 저장할 수 있게 화면에만 보여 둔다.
 - 프로젝트 생성이 끝날 때까지 기다린다.
 
 [2] 테이블 만들기
 - 아래 주소의 SQL 전체를 연다:
-  https://raw.githubusercontent.com/hyubbb/tokbang-wrapped/main/supabase/migrations/0001_init.sql
+  https://raw.githubusercontent.com/hyubbb/talk-recap/main/supabase/migrations/0001_init.sql
 - Supabase 대시보드 > SQL Editor > New query에 그 SQL 전체를 붙여넣고 Run.
 - 에러가 나면 메시지를 그대로 알려 줘. pg_cron 관련 에러만 나면 마지막 두 문장(create extension pg_cron, cron.schedule)을 지우고 다시 Run.
 - Table Editor에서 reports, quiz_scores, objections, votes 4개가 생겼고 전부 RLS enabled인지 확인한다.
@@ -63,7 +63,7 @@ API 키나 비밀번호는 대화창에 전체를 다시 출력하지 말고, �
 - publishable/anon 키는 이번엔 쓰지 않는다.
 
 [4] Vercel에 배포
-- vercel.com에 GitHub 계정(hyubbb)으로 로그인하고 Add New > Project에서 hyubbb/tokbang-wrapped를 Import.
+- vercel.com에 GitHub 계정(hyubbb)으로 로그인하고 Add New > Project에서 hyubbb/talk-recap을 Import.
 - Framework는 Next.js 자동 감지 그대로 둔다.
 - Deploy 전에 Environment Variables에 아래를 추가한다 (Production, Preview, Development 모두 체크):
   - SUPABASE_URL = [3]의 Project URL
@@ -82,7 +82,7 @@ API 키나 비밀번호는 대화창에 전체를 다시 출력하지 말고, �
 - 설정을 바꿨으면 Deployments에서 최신 배포를 Redeploy한다.
 
 [6] 동작 확인
-- 배포된 주소(https://tokbang-wrapped-xxxx.vercel.app)를 열어 랜딩 페이지가 뜨는지 확인한다.
+- 배포된 주소(https://talk-recap-xxxx.vercel.app)를 열어 랜딩 페이지가 뜨는지 확인한다.
 - /new 페이지가 열리는지 확인한다.
 - 마지막으로 배포 주소, Supabase 프로젝트 이름과 지역, 각 단계 성공 여부를 정리해서 알려 줘.
 ```

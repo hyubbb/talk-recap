@@ -1,5 +1,6 @@
 import type { Report } from "@/lib/llm/schema";
 import type { RoomStats } from "@/lib/kakao/stats";
+import { migrateLegacyKeys, STORE_PREFIX, storeKey } from "@/lib/storageKeys";
 
 /** 결과 한 건. MVP에서는 이 브라우저(localStorage)에만 저장한다. 공유는 Supabase 연결 후. */
 export interface SavedReport {
@@ -13,7 +14,8 @@ export interface SavedReport {
   droppedQuotes: number;
 }
 
-const KEY = (id: string) => `tokbang:report:${id}`;
+const KEY = (id: string) => storeKey("report", id);
+const REPORT_PREFIX = `${STORE_PREFIX}report:`;
 
 export function saveReport(r: SavedReport): void {
   try {
@@ -47,11 +49,12 @@ export interface ReportSummary {
 export function listReports(limit = 5): ReportSummary[] {
   const out: ReportSummary[] = [];
   const seen = new Set<string>();
+  migrateLegacyKeys();
   try {
     for (const store of [localStorage, sessionStorage]) {
       for (let i = 0; i < store.length; i++) {
         const key = store.key(i);
-        if (!key?.startsWith("tokbang:report:")) continue;
+        if (!key?.startsWith(REPORT_PREFIX)) continue;
         try {
           const r = JSON.parse(store.getItem(key) ?? "") as Partial<SavedReport>;
           if (!r.id || typeof r.createdAt !== "number" || seen.has(r.id)) continue;
