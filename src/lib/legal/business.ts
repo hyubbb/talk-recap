@@ -29,8 +29,8 @@ export const pending = (v: string | null) => v ?? "준비 중";
  * 가격은 부가세 포함 원 단위. 바꾸면 약관 변경 공지 대상이다(시행 7일 전 고지).
  */
 export const PRODUCTS = [
-  { id: "lite", name: "라이트 분석", price: 500, scope: "최근 30일 이내 기간의 대화를 AI로 분석" },
-  { id: "full", name: "전체 분석", price: 1500, scope: "기간 제한 없이 올린 대화 전체를 AI로 분석" },
+  { id: "lite", name: "라이트 분석", price: 900, scope: "최대 100일 기간의 대화를 AI로 분석" },
+  { id: "full", name: "1년 분석", price: 1500, scope: "최대 1년 기간의 대화를 AI로 분석" },
 ] as const;
 
 export const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
