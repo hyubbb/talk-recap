@@ -17,10 +17,10 @@ const body = z.object({
 
 /** 구간 노트들을 하나의 최종 리포트로 합친다. 원문은 받지 않는다. */
 export async function POST(req: Request) {
-  const denied = await checkAnalysisPayment(req);
-  if (denied) return denied;
   const parsed = body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "요청 형식이 올바르지 않아요." }, { status: 400 });
+  const denied = await checkAnalysisPayment(req, { kind: "synth" });
+  if (denied) return denied;
   const { period, members, statsDigest, notes } = parsed.data;
   const cfg = llmConfig();
   const known = notes.flatMap((n) => n.members.flatMap((m) => m.quotes));

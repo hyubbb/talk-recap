@@ -22,6 +22,7 @@
 `supabase/migrations/0001_init.sql`, 이어서 `0002_realtime.sql` — Supabase 대시보드 SQL Editor에 순서대로 붙여넣고 Run.
 `0002`는 반박 투표 함수(`cast_objection_vote`)와 Realtime 정책을 만든다.
 `0003_quiz_counts.sql`은 퀴즈 결과에 맞힌 개수(`correct`)와 문제 수(`total`)를 더한다. 적용 전에도 앱은 점수만으로 동작하고, 적용 후부터 "10개 중 8개"로 보인다.
+`0004_orders.sql`은 결제 주문(`orders`), `0005_order_usage.sql`은 결제 한 건당 AI 분석량 한도(`consume_order`)를 만든다. **`0005`를 안 돌리면 결제한 분석이 "결제 확인 중 문제가 생겼어요"로 막힌다**(한도를 못 세면 분석하지 않음). 한도 값은 `src/lib/pay/usage.ts`: 원문 하루 80KB × 상품 기간(라이트 8MB, 1년 29.2MB, 재시도 포함), 종합 4번, 구간 날짜가 상품 기간 안.
 
 | 테이블 | 용도 |
 | --- | --- |
@@ -29,6 +30,7 @@
 | `quiz_scores` | "이 말 누가 했게?" 퀴즈 점수 |
 | `objections` | 반박권 (항목당 멤버 1회) |
 | `votes` | 반박 인정/기각 투표 (브라우저별 익명 키로 중복 방지) |
+| `orders` | 결제 주문 (상태, 주문 비밀값 해시, 분석에 쓴 원문 바이트·종합 횟수·기간) |
 
 모든 테이블은 RLS를 켜고 공개 정책이 없다. 접근은 서버 API가 secret key로만 한다.
 만료된 `reports`는 pg_cron으로 매일 삭제된다(pg_cron이 없으면 해당 두 줄은 빼도 됨).

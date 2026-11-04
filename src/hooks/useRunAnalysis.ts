@@ -124,7 +124,7 @@ export function useRunAnalysis(
             try {
               const r = await postJson<{ notes: ChunkNotes; dropped: number; usage: typeof usage; provider: string }>(
                 "/api/analyze/chunk",
-                { index: t.index, total: texts.length, period: `${md(t.start)}~${md(t.end)}`, members: names, text: t.text },
+                { index: t.index, total, period: `${md(t.start)}~${md(t.end)}`, members: names, text: t.text, start: t.start, end: t.end },
                 auth,
               );
               notes[t.index] = r.notes;
