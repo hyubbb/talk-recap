@@ -101,8 +101,8 @@ export function AnalysisOverlay({ pending, onRetry }: { pending: boolean; onRetr
         </div>
         <p id="analysis-overlay-desc" className="mt-2 text-[14px] leading-[1.6] text-haze">
           {isError
-            ? "일부 구간이나 종합 단계에서 오류가 났어요. 다시 시도하면 처음부터 다시 분석해요."
-            : "보통 1~3분 걸려요. 이 화면을 닫거나 다른 페이지로 이동하면 분석이 멈추니 잠시만 기다려 주세요."}
+            ? "일부 구간이나 종합 단계에서 오류가 났어요. 다시 시도하면 끝난 구간은 건너뛰고 이어서 분석해요. 결제는 다시 하지 않아요."
+            : "보통 1~3분 걸려요. 화면을 닫으면 분석이 멈춰요. 결제한 분석은 새로고침하거나 다시 열어도 끝난 부분부터 이어서 해요."}
         </p>
 
         <div className="mt-5">

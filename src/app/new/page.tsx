@@ -20,7 +20,8 @@ import { aliasesAtom, consentAtom, groupsAtom, metaAtom, phaseAtom, rangeAtom } 
 import { useSetAtom } from "jotai";
 import { productForDays, spanDays } from "@/lib/legal/business";
 import { PayConfirm } from "@/components/pay/PayConfirm";
-import { clearPending, loadPending, savePending } from "@/lib/pay/pending";
+import { listUnfinished, loadPending, savePending } from "@/lib/pay/pending";
+import { loadReport } from "@/lib/report/storage";
 import type { PaidOrder } from "@/hooks/useRunAnalysis";
 import { statsAtom } from "@/state/upload";
 
@@ -37,6 +38,11 @@ export default function NewPage() {
   const [consent, setConsent] = useAtom(consentAtom);
   const { parse, recompute, chunkTexts, contexts } = useAnalyzeWorker();
   const run = useRunAnalysis(chunkTexts, contexts);
+  // useMutation 결과는 렌더마다 새 객체라 effect 의존성에 넣으면 이어 하기 타이머가 취소된다
+  const mutateRef = useRef(run.mutate);
+  useEffect(() => {
+    mutateRef.current = run.mutate;
+  });
   const analysis = useAtomValue(analysisAtom);
   const router = useRouter();
   const store = useStore();
@@ -56,6 +62,8 @@ export default function NewPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [payBusy, setPayBusy] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  // 결제했는데 안 끝난 분석 (탭을 닫았다 다시 온 경우)
+  const [unfinished, setUnfinished] = useState<string | null>(null);
   const resumeRef = useRef<{ order: PaidOrder; groups: MemberGroup[]; range: DateRange | null; aliases: Record<string, string[]> } | null>(null);
 
   // 분석할 기간(일). 기간을 따로 고르지 않았으면 대화 전체 → 가격이 정해진다
@@ -79,9 +87,19 @@ export default function NewPage() {
         .then((b) => onFiles([new File([b], "샘플-가짜대화.txt", { type: "text/plain" })]));
     }
     const orderNo = q.get("resume");
+    if (!orderNo) {
+      listUnfinished()
+        .then((list) => setUnfinished(list[0]?.orderNo ?? null))
+        .catch(() => {});
+    }
     if (orderNo) {
       loadPending(orderNo).then((p) => {
         if (!p) return setPayError("결제한 대화를 이 브라우저에서 찾지 못했어요. 결제가 됐다면 고객센터로 주문번호를 보내 주세요.");
+        // 이미 끝난 분석이면 (결과로 넘어가기 전에 새로고침) 결과로 보낸다
+        if (p.reportId) {
+          if (loadReport(p.reportId)) return router.replace(`/r/${p.reportId}`);
+          return setPayError("이미 끝난 분석이에요. 결과는 분석한 브라우저의 '지난 결과'에서 볼 수 있어요.");
+        }
         setPayMode(true);
         setConsent(true);
         resumeRef.current = { order: { orderNo: p.orderNo, secret: p.secret }, groups: p.groups, range: p.range, aliases: p.aliases };
@@ -93,19 +111,21 @@ export default function NewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 돌아온 대화를 다시 읽고 나면, 결제 전 설정(멤버·기간)을 되돌린 뒤 바로 분석을 시작한다
+  // 돌아온 대화를 다시 읽고 나면, 결제 전 설정(멤버·기간)을 되돌린 뒤 바로 분석을 시작한다.
+  // 저장해 둔 대화는 분석이 끝날 때 지운다 (중간에 새로고침해도 이어서 할 수 있게).
+  // 시작 전에 effect가 정리돼도(다시 읽기 등) resumeRef가 남아 있어 다음 번에 다시 잡는다.
   useEffect(() => {
     const r = resumeRef.current;
     if (!r || phase.kind !== "ready") return;
-    resumeRef.current = null;
     setGroups(r.groups);
     setRange(r.range);
     const before = store.get(statsAtom);
     recompute(r.groups, r.aliases, r.range);
     const go = () => {
-      clearPending(r.order!.orderNo).catch(() => {});
+      if (resumeRef.current !== r) return;
+      resumeRef.current = null;
       lastOrder.current = r.order;
-      run.mutate(r.order);
+      mutateRef.current(r.order);
     };
     const unsub = store.sub(statsAtom, () => {
       if (store.get(statsAtom) !== before) {
@@ -121,7 +141,7 @@ export default function NewPage() {
       clearTimeout(t);
       unsub();
     };
-  }, [phase, store, setGroups, setRange, recompute, run]);
+  }, [phase, store, setGroups, setRange, recompute]);
 
   // AI 분석 시작: 무료면 바로, 결제 모드면 기간·요금 확인 창을 띄운다
   const start = () => {
@@ -196,6 +216,18 @@ export default function NewPage() {
         <p className="mt-4 rounded-[14px] bg-dusk p-4 text-[14px] text-danger" role="alert">
           {payError}
         </p>
+      )}
+      {!meta && unfinished && (
+        <div className="mt-4 rounded-[var(--radius-card)] bg-dusk p-4" role="status">
+          <p className="text-[15px] font-bold">결제한 분석이 아직 안 끝났어요</p>
+          <p className="mt-1 text-[13px] leading-[1.5] text-haze">끝난 부분부터 이어서 분석해요. 다시 결제하지 않아요.</p>
+          <a
+            href={`/new?resume=${encodeURIComponent(unfinished)}`}
+            className="mt-3 flex h-11 items-center justify-center rounded-[14px] bg-spark text-[15px] font-bold text-spark-ink"
+          >
+            이어서 분석하기
+          </a>
+        </div>
       )}
       {!meta && <RecentReports />}
 
