@@ -14,37 +14,42 @@ const clock = (ts: number) => {
   const d = new Date(ts);
   return `${d.getUTCHours()}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 };
+/** 예시로 보여도 되는 문장 (민감 주제·빈 글자 제외) */
+const safeExample = (t: string) => /[\p{L}\p{N}]/u.test(t) && !isSensitive(t);
 const clean = (s: string) => s.replace(/\(목업\)\s*/g, "").trim();
 
 function Big({ children }: { children: React.ReactNode }) {
   return <p className="tabular text-[clamp(48px,16cqw,84px)] leading-[1.02] font-black tracking-[-0.04em]">{children}</p>;
 }
-/** 가운데 제목. 위아래로 관련 단어를 흐리게 두 개씩 띄운다 */
-function Hero({ words, children }: { words: string[]; children: React.ReactNode }) {
-  const chip = (w: string, i: number, far: boolean) => (
+/** 대화에서 꺼낸 말한마디. 카톡 말풍선 모양, 왼쪽·오른쪽으로 번갈아 */
+function Bubble({ text, ink, right, faint }: { text: string; ink: string; right?: boolean; faint?: boolean }) {
+  return (
     <span
-      key={w + i}
-      className={`font-pixel rounded-full border border-current px-3 py-1 text-[13px] ${far ? "opacity-30" : "opacity-55"}`}
-      style={{ transform: `rotate(${i % 2 ? 3 : -3}deg)` }}
+      className={`max-w-[80%] truncate px-3.5 py-1.5 text-[15px] font-semibold ${right ? "self-end rounded-[18px] rounded-br-[4px]" : "self-start rounded-[18px] rounded-bl-[4px]"}`}
+      style={{ background: `${ink}${faint ? "14" : "22"}` }}
     >
-      {w}
+      {text}
     </span>
   );
+}
+
+/** 가운데 제목. 위아래로 관련 말풍선을 두 개씩 띄운다 */
+function Hero({ words, ink, children }: { words: string[]; ink: string; children: React.ReactNode }) {
   const above = words.slice(0, 2);
   const below = words.slice(2, 4);
+  const stack = (list: string[], offset: number) =>
+    list.length > 0 && (
+      <div className="flex w-full flex-col gap-1.5 px-2" aria-hidden>
+        {list.map((w, i) => (
+          <Bubble key={w} text={w} ink={ink} right={(i + offset) % 2 === 1} faint={offset === 0 ? i === 0 : i === 1} />
+        ))}
+      </div>
+    );
   return (
-    <div className="my-auto flex flex-col items-center gap-5 py-6 text-center">
-      {above.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-2" aria-hidden>
-          {above.map((w, i) => chip(w, i, i === 0))}
-        </div>
-      )}
+    <div className="my-auto flex flex-col items-center gap-6 py-6 text-center">
+      {stack(above, 0)}
       <div className="flex flex-col items-center">{children}</div>
-      {below.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-2" aria-hidden>
-          {below.map((w, i) => chip(w, i + 1, i === 1))}
-        </div>
-      )}
+      {stack(below, 2)}
     </div>
   );
 }
@@ -71,7 +76,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
           <p className="text-center text-[15px] opacity-80">
             {fmt(stats.start)} ~ {fmt(stats.end)}
           </p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <p className="text-[clamp(30px,10cqw,44px)] leading-[1.15] font-black tracking-[-0.03em]">{report.title}</p>
           </Hero>
           <div className="text-center">
@@ -85,7 +90,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">수다왕</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <p className="text-[28px] font-extrabold">{top ? nameOf(top.id) : ""}</p>
             <Big>{top ? n(top.messages) : 0}개</Big>
             <Line>{top ? `혼자 전체의 ${Math.round(top.share * 100)}%를 말했어요` : ""}</Line>
@@ -110,7 +115,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">말버릇 왕</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             {best ? (
               <>
                 <p className="text-[28px] font-extrabold">&lsquo;{best.c.text.trim()}&rsquo;</p>
@@ -132,7 +137,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">누가 밤에 살아나나</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <Big>{peak}시</Big>
             <Line>방이 제일 시끄러운 시간</Line>
           </Hero>
@@ -159,6 +164,11 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
               <li>
                 <p className="tabular text-[40px] leading-none font-black">{n(h.longestMessage.length)}자</p>
                 <p className="mt-1 text-[15px] font-semibold">가장 긴 메시지 · {nameOf(h.longestMessage.memberId)}</p>
+                {safeExample(h.longestMessage.preview) && (
+                  <div className="mt-2 flex">
+                    <Bubble text={`${h.longestMessage.preview.trim()}…`} ink={ink} />
+                  </div>
+                )}
               </li>
             )}
             {h.lateNightMonologue && (
@@ -173,6 +183,13 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
               <li>
                 <p className="tabular text-[40px] leading-none font-black">{n(h.repeatStreak.count)}연속</p>
                 <p className="mt-1 text-[15px] font-semibold">같은 말 연타 · {nameOf(h.repeatStreak.memberId)}</p>
+                {safeExample(h.repeatStreak.text) && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {Array.from({ length: Math.min(3, h.repeatStreak.count) }, (_, i) => (
+                      <Bubble key={i} text={h.repeatStreak!.text.trim()} ink={ink} faint={i > 0} />
+                    ))}
+                  </div>
+                )}
               </li>
             )}
             {h.topLastWord && (
@@ -189,7 +206,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">줄거리</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <Big>{report.acts.length}막</Big>
             <Line>{clean(report.acts[0]?.title ?? "")}부터 시작해요</Line>
           </Hero>
@@ -212,9 +229,9 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       if (!m) return null;
       return (
         <>
-          <p className="text-[17px] font-bold">{m.name}</p>
-          <Hero words={words}>
-            <p className="text-[13px] font-semibold opacity-75">아키타입</p>
+          <p className="font-pixel text-[15px]">아키타입</p>
+          <Hero words={words} ink={ink}>
+            <p className="text-[clamp(22px,7cqw,30px)] font-extrabold">{m.name}</p>
             <p className="mt-1 text-[clamp(32px,11cqw,46px)] leading-[1.12] font-black tracking-[-0.03em]">{m.archetype}</p>
             <Line>{m.oneLiner ? `“${m.oneLiner}”` : m.summary}</Line>
           </Hero>
@@ -228,7 +245,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">최고 궁합</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <p className="text-[26px] font-extrabold">
               {p.a} × {p.b}
             </p>
@@ -242,7 +259,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">MBTI</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <p className="text-[clamp(30px,10cqw,42px)] leading-[1.15] font-black">본인 주장<br />vs 행동 추론</p>
           </Hero>
           <ul className="flex flex-col gap-3">
@@ -263,7 +280,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">어워드</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <p className="font-pixel text-[15px] opacity-80">{clean(report.awards[0]?.title ?? "")}</p>
             <Big>{report.awards[0]?.winner ?? ""}</Big>
           </Hero>
@@ -286,7 +303,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">WHAT&apos;S IN MY BAG</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <p className="text-[clamp(28px,9cqw,40px)] leading-[1.15] font-black">{m.name}의<br />{clean(m.bag.bag) || "가방"}</p>
           </Hero>
           <ul className="grid grid-cols-3 gap-3">
@@ -306,7 +323,7 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
       return (
         <>
           <p className="font-pixel text-[15px]">총평</p>
-          <Hero words={words}>
+          <Hero words={words} ink={ink}>
             <p className="text-[22px] leading-[1.5] font-bold">{report.closing}</p>
           </Hero>
           <div className="flex flex-col gap-2" data-no-capture onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>

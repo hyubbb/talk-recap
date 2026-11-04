@@ -124,7 +124,7 @@ export function relatedWords(slide: Slide, saved: SavedReport): string[] {
   const out: string[] = [];
   for (const w of words) {
     const t = w.replace(/\(목업\)\s*/g, "").trim();
-    if (t && t.length <= 14 && !isSensitive(t) && !out.includes(t)) out.push(t);
+    if (t && t.length <= 14 && /[\p{L}\p{N}]/u.test(t) && !isSensitive(t) && !out.includes(t)) out.push(t);
     if (out.length === 4) break;
   }
   return out;

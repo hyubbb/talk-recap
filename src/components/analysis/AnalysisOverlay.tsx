@@ -1,9 +1,11 @@
 "use client";
 
-import { useAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useAtom, useAtomValue } from "jotai";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnalysisProgress } from "./AnalysisProgress";
 import { analysisAtom } from "@/state/analysis";
+import { groupsAtom, statsAtom } from "@/state/upload";
+import { buildTeasers } from "@/lib/kakao/teasers";
 
 /**
  * AI 분석 중에는 화면 전체를 덮어서 페이지를 벗어나거나 다른 걸 건드리지 않게 한다.
@@ -113,6 +115,8 @@ export function AnalysisOverlay({ pending, onRetry }: { pending: boolean; onRetr
           )}
         </div>
 
+        {busy && !isDone && <Teasers />}
+
         {isError && (
           <div className="mt-6 flex gap-2">
             <button
@@ -132,6 +136,34 @@ export function AnalysisOverlay({ pending, onRetry }: { pending: boolean; onRetr
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** 기다리는 동안 브라우저가 이미 센 통계를 4초마다 하나씩 보여준다 */
+function Teasers() {
+  const stats = useAtomValue(statsAtom);
+  const groups = useAtomValue(groupsAtom);
+  const list = useMemo(() => {
+    if (!stats) return [];
+    return buildTeasers(stats, (id) => groups.find((g) => g.id === id)?.displayName ?? "누군가");
+  }, [stats, groups]);
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (list.length < 2) return;
+    const t = setInterval(() => setI((v) => (v + 1) % list.length), 4000);
+    return () => clearInterval(t);
+  }, [list.length]);
+  if (list.length === 0) return null;
+  return (
+    <div className="mt-5 rounded-[18px] bg-night/60 p-4">
+      <p className="font-pixel text-[12px] text-spark">기다리는 동안 미리 보기</p>
+      <p key={i} className="bubble-in mt-2 min-h-[48px] text-[16px] leading-[1.5] font-bold">
+        {list[i % list.length]}
+      </p>
+      <p className="tabular mt-1 text-[12px] text-haze">
+        {(i % list.length) + 1}/{list.length}
+      </p>
     </div>
   );
 }
