@@ -4,8 +4,20 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { analyzedAt, day, useSavedReports } from "@/components/upload/RecentReports";
 
-/** 결과 페이지 상단 "지난 결과": 이 브라우저에서 돌린 다른 분석으로 바로 이동 */
-export function PastReportsMenu({ currentId }: { currentId: string }) {
+/**
+ * 이 브라우저에서 돌린 분석 결과로 바로 이동하는 메뉴.
+ * 결과 페이지("지난 결과", currentId = 보는 결과)와 첫 화면 헤더("결과 보기")에서 쓴다.
+ */
+/** anchor="parent": 펼친 목록을 이 버튼 대신 가까운 relative 부모(헤더 nav)의 오른쪽 끝에 맞춘다 */
+export function PastReportsMenu({
+  currentId,
+  label = "지난 결과",
+  anchor = "self",
+}: {
+  currentId?: string;
+  label?: string;
+  anchor?: "self" | "parent";
+}) {
   const items = useSavedReports();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -27,7 +39,7 @@ export function PastReportsMenu({ currentId }: { currentId: string }) {
   if (!items.some((r) => r.id !== currentId)) return null;
 
   return (
-    <div ref={box} className="relative">
+    <div ref={box} className={anchor === "self" ? "relative" : undefined}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -35,10 +47,10 @@ export function PastReportsMenu({ currentId }: { currentId: string }) {
         aria-haspopup="true"
         className="text-[14px] text-haze hover:text-moon"
       >
-        지난 결과
+        {label}
       </button>
       {open && (
-        <ul className="absolute right-0 z-40 mt-2 w-[min(300px,calc(100vw-40px))] overflow-hidden rounded-[16px] bg-dusk-2 p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+        <ul className="absolute top-full right-0 z-40 mt-2 w-[min(300px,calc(100vw-40px))] overflow-hidden rounded-[16px] bg-dusk-2 p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
           {items.map((r) => {
             const here = r.id === currentId;
             return (

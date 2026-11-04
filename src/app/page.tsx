@@ -4,6 +4,7 @@ import { FeatureCarousel } from "@/components/FeatureCarousel";
 import { HeroChat } from "@/components/HeroChat";
 import { DataNoticeModal } from "@/components/DataNoticeModal";
 import { SiteFooter } from "@/components/SiteFooter";
+import { PastReportsMenu } from "@/components/report/PastReportsMenu";
 
 export default function Home() {
   return (
@@ -11,7 +12,9 @@ export default function Home() {
       <main className="mx-auto flex w-full max-w-[560px] flex-col px-5 pb-24">
         <header className="flex items-center justify-between py-5">
           <span className="font-pixel text-[15px] text-moon">Talk Recap</span>
-          <nav className="flex gap-4 text-[14px] text-haze">
+          <nav className="relative flex items-center gap-4 text-[14px] text-haze">
+            {/* 이 브라우저에 분석 결과가 있을 때만 보인다 */}
+            <PastReportsMenu label="결과 보기" anchor="parent" />
             <Link href="/pricing" className="hover:text-moon">
               요금
             </Link>
