@@ -273,7 +273,7 @@ function MoreStories({ scenes, sections }: { scenes: StoryBlock[]; sections: Sto
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="h-11 rounded-[14px] border border-dusk-2 text-[14px] font-semibold text-haze"
+        className="h-11 cursor-pointer rounded-[14px] border border-dusk-2 text-[14px] font-bold text-moon hover:bg-dusk-2"
       >
         {open ? "접기" : `명장면·이야기 ${count}개 더보기`}
       </button>
