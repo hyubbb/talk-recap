@@ -2,12 +2,22 @@ import type { FunFact } from "@/lib/kakao/fun";
 
 /** "숫자로 본 우리 방": 기록마다 이름표·큰 숫자·주인공·설명이 있는 타일 */
 export function FunFacts({ facts, nameOf, colorOf }: { facts: FunFact[]; nameOf: (id: string) => string; colorOf: (id: string) => string }) {
+  // 이름이 둘인 랠리, 글자가 긴 유행어는 한 줄을 다 쓴다.
+  // 반 칸 타일이 줄에 혼자 남으면(다음이 넓은 타일이거나 마지막) 그것도 한 줄로 늘린다.
+  const alwaysWide = (f: FunFact) => f.key === "rally" || f.key === "origin";
+  const wideAt: boolean[] = [];
+  let col = 0;
+  for (let i = 0; i < facts.length; i++) {
+    const next = facts[i + 1];
+    const wide = alwaysWide(facts[i]) || (col === 0 && (!next || alwaysWide(next)));
+    wideAt.push(wide);
+    col = wide ? 0 : (col + 1) % 2;
+  }
   return (
     <>
       <ul className="grid grid-cols-2 gap-2.5">
         {facts.map((f, i) => {
-          // 짝이 안 맞는 마지막 칸, 이름이 둘인 랠리, 글자가 긴 유행어는 한 줄을 다 쓴다
-          const wide = f.key === "rally" || f.key === "origin" || (i === facts.length - 1 && facts.length % 2 === 1);
+          const wide = wideAt[i];
           return (
             <li key={f.key} className={`flex flex-col rounded-[16px] bg-dusk p-4 ${wide ? "col-span-2" : ""}`}>
               <p className="font-pixel text-[12px] text-spark">{f.label}</p>
