@@ -8,6 +8,7 @@ import { isSensitive } from "@/lib/quiz/sensitive";
 import { funFacts } from "@/lib/kakao/fun";
 import { recordFacts } from "@/lib/kakao/records";
 import { TileGrid, factTiles } from "./FunFacts";
+import { MyRecords } from "./MyRecords";
 import { Calendar, HoursMap, LaughChart, OriginSpread, RecordTiles, Responders, dutyTiles, hiddenTiles } from "./RoomRecords";
 import { topOrigin, topResponders } from "@/lib/story/slides";
 import { ContextsProvider, ContextView, QuoteList } from "./Quotes";
@@ -37,7 +38,7 @@ interface Props {
   me?: string | null;
 }
 
-export function ReportView({ saved, shared, actions }: Props) {
+export function ReportView({ saved, shared, actions, me }: Props) {
   const { report, stats, members } = saved;
   const byName = new Map(members.map((m) => [m.name, m]));
   const color = (name: string) => byName.get(name)?.color ?? "var(--color-haze)";
@@ -99,6 +100,10 @@ export function ReportView({ saved, shared, actions }: Props) {
       </section>
 
       {actions}
+
+      <Section title="내 기록">
+        <MyRecords stats={stats} members={members} me={me} />
+      </Section>
 
       {(tiles.length > 0 || hasOrigin || hasLaughChart) && (
         <Section title="숫자로 본 우리 방">
