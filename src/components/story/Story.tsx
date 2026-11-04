@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SavedReport } from "@/lib/report/storage";
-import { buildSlides, inkOn } from "@/lib/story/slides";
+import { buildSlides, inkOn, relatedWords } from "@/lib/story/slides";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { SaveImageButton, Watermark } from "@/components/cards/SaveImageButton";
 import { SlideContent, type SlideActions } from "./SlideContent";
@@ -109,7 +109,7 @@ export function Story({
           <h2 id={`slide-title-${index}`} className="sr-only">
             {index + 1}/{slides.length} {slide.title}
           </h2>
-          <SlideContent slide={slide} saved={saved} ink={ink} actions={actions} />
+          <SlideContent slide={slide} saved={saved} ink={ink} actions={actions} words={relatedWords(slide, saved)} />
         </section>
         <Watermark ink={ink} />
       </div>

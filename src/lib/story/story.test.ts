@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSlides, inkOn, safePair } from "./slides";
+import { buildSlides, inkOn, relatedWords, safePair } from "./slides";
 import { fakeReport } from "../testing/fakeReport";
 
 describe("buildSlides", () => {
@@ -23,6 +23,24 @@ describe("buildSlides", () => {
     r.report.pairs = [{ a: "도토리", b: "고등어", score: 99, label: "썸", reason: "고백 각" }];
     expect(safePair(r)).toBeUndefined();
     expect(buildSlides(r).some((x) => x.kind === "pair")).toBe(false);
+  });
+
+  it("관련 단어는 최대 4개, 중복·민감 단어 없이", () => {
+    const r = fakeReport(3);
+    r.stats.members[0].catchphrases = [
+      { text: "배고파", count: 9 },
+      { text: "배고파", count: 8 },
+      { text: "병원 가야돼", count: 7 },
+      { text: "가자", count: 6 },
+    ];
+    for (const s of buildSlides(r)) {
+      const w = relatedWords(s, r);
+      expect(w.length).toBeLessThanOrEqual(4);
+      expect(new Set(w).size).toBe(w.length);
+      expect(w).not.toContain("병원 가야돼");
+    }
+    const opening = buildSlides(r).find((s) => s.kind === "opening")!;
+    expect(relatedWords(opening, r)).toContain("배고파");
   });
 
   it("배경이 밝으면 어두운 글자", () => {
