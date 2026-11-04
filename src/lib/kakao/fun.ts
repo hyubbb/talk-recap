@@ -178,44 +178,104 @@ export function computeFun(
   };
 }
 
-/** 이름 뒤 조사: 받침 있으면 "이", 없으면 "가" (한글로 안 끝나면 "이(가)") */
-export function iga(name: string): string {
-  const c = name.trim().charCodeAt(name.trim().length - 1);
-  if (c < 0xac00 || c > 0xd7a3) return `${name}이(가)`;
-  return (c - 0xac00) % 28 ? `${name}이` : `${name}가`;
-}
-
 /** 표본이 너무 적으면 비율이 튀어서 순위에서 뺀다 */
 export const MIN_SAMPLE = 20;
+/** 이보다 낮은 비율(웃음·허공)은 재밌는 기록이 아니라서 안 보여준다 */
+export const MIN_RATIO = 0.1;
 
-/** 결과·대기 화면·AI 입력에 같이 쓰는 한 줄 요약들 */
-export function funLines(fun: FunStats | undefined, nameOf: (id: string) => string): string[] {
-  if (!fun) return [];
-  const out: string[] = [];
-  const pct = (n: number) => Math.round(n * 100);
-  const laugh = [...fun.laughs].filter((l) => l.attempts >= MIN_SAMPLE).sort((a, b) => b.ratio - a.ratio)[0];
-  if (laugh && laugh.ratio >= 0.1) out.push(`${iga(nameOf(laugh.memberId))} 말하면 ${pct(laugh.ratio)}% 확률로 ㅋㅋ가 터져요`);
-  const lonely = [...fun.unanswered].filter((u) => u.turns >= MIN_SAMPLE).sort((a, b) => b.ratio - a.ratio)[0];
-  if (lonely && lonely.count > 0) out.push(`${nameOf(lonely.memberId)}의 말 ${pct(lonely.ratio)}%는 30분 넘게 아무도 안 받았어요`);
-  if (fun.rally) out.push(`${nameOf(fun.rally.a)} ↔ ${nameOf(fun.rally.b)}, 쉬지 않고 ${fun.rally.turns}번 주고받은 랠리 기록`);
-  const o = fun.origins[0];
-  if (o && o.spread.length >= 2) out.push(`‘${o.text}’의 원조는 ${nameOf(o.spread[0].memberId)}, 지금은 ${o.spread.length}명이 써요`);
-  const mood = bestMood(fun);
-  if (mood) out.push(`${iga(nameOf(mood.memberId))} 말한 날엔 방 메시지가 ${mood.times.toFixed(1)}배예요`);
-  const ll = fun.laughLength;
-  if (ll.length >= 2 && ll[ll.length - 1].avg - ll[0].avg >= 0.5) {
-    out.push(`ㅋ 길이가 ${ll[0].avg.toFixed(1)}개에서 ${ll[ll.length - 1].avg.toFixed(1)}개로 늘었어요`);
-  }
-  return out;
+/** 웃음 유발 순위 */
+export function laughRanking(fun: FunStats) {
+  return fun.laughs.filter((l) => l.attempts >= MIN_SAMPLE && l.ratio >= MIN_RATIO).sort((a, b) => b.ratio - a.ratio);
 }
 
-/** 말한 날/안 한 날 차이가 가장 큰 사람 (양쪽 다 3일 이상일 때만) */
+/** 허공에 외친 비율 순위 */
+export function lonelyRanking(fun: FunStats) {
+  return fun.unanswered.filter((u) => u.turns >= MIN_SAMPLE && u.ratio >= MIN_RATIO).sort((a, b) => b.ratio - a.ratio);
+}
+
+/**
+ * 말한 날/안 한 날 차이가 가장 큰 사람.
+ * 거의 매일 말하는 사람은 안 한 날이 며칠 없는 조용한 날뿐이라 배수가 튀어서,
+ * 양쪽 다 5일 이상이고 대화한 날의 15% 이상일 때만 비교한다.
+ */
 export function bestMood(fun: FunStats) {
   let best: { memberId: string; times: number; withAvg: number; withoutAvg: number } | null = null;
   for (const m of fun.mood) {
-    if (m.withDays < 3 || m.withoutDays < 3 || m.withoutAvg <= 0) continue;
+    const min = Math.max(5, (m.withDays + m.withoutDays) * 0.15);
+    if (m.withDays < min || m.withoutDays < min || m.withoutAvg <= 0) continue;
     const times = m.withAvg / m.withoutAvg;
     if (times >= 1.2 && (!best || times > best.times)) best = { memberId: m.memberId, times, withAvg: m.withAvg, withoutAvg: m.withoutAvg };
   }
   return best;
+}
+
+/** 분석 하나를 타일로 보여줄 때 쓰는 조각. text는 한 줄 요약(대기 화면·AI 입력) */
+export interface FunFact {
+  key: "laugh" | "lonely" | "rally" | "origin" | "mood" | "inflation";
+  label: string;
+  /** 크게 보여줄 값 ("51%", "61턴", "‘아하’") */
+  value: string;
+  caption: string;
+  /** 주인공 멤버 id (랠리는 두 명, ㅋ 인플레이션은 없음) */
+  who: string[];
+  text: string;
+}
+
+const pct = (n: number) => `${Math.round(n * 100)}%`;
+
+/** 결과·대기 화면·AI 입력에 같이 쓰는 기록들. 이름 뒤 조사가 필요 없게 쓴다 (영문 이름도 자연스럽게) */
+export function funFacts(fun: FunStats | undefined, nameOf: (id: string) => string): FunFact[] {
+  if (!fun) return [];
+  const out: FunFact[] = [];
+  const laugh = laughRanking(fun)[0];
+  if (laugh) {
+    const name = nameOf(laugh.memberId);
+    out.push({
+      key: "laugh", label: "웃음 버튼", value: pct(laugh.ratio), caption: "말하면 1분 안에 ㅋㅋ가 터질 확률", who: [laugh.memberId],
+      text: `웃음 버튼 ${name}: 말하면 ${pct(laugh.ratio)} 확률로 ㅋㅋ가 터져요`,
+    });
+  }
+  const lonely = lonelyRanking(fun)[0];
+  if (lonely) {
+    const name = nameOf(lonely.memberId);
+    out.push({
+      key: "lonely", label: "허공에 외친 말", value: pct(lonely.ratio), caption: "30분 넘게 아무도 안 받은 말의 비율", who: [lonely.memberId],
+      text: `허공에 외친 말 ${name}: 말의 ${pct(lonely.ratio)}는 30분 넘게 아무도 안 받았어요`,
+    });
+  }
+  if (fun.rally) {
+    const r = fun.rally;
+    out.push({
+      key: "rally", label: "핑퐁 랠리", value: `${r.turns}턴`, caption: "둘이서 쉼지 않고 주고받은 최장 기록", who: [r.a, r.b],
+      text: `핑퐁 랠리 ${nameOf(r.a)} ↔ ${nameOf(r.b)}: 쉼지 않고 ${r.turns}번 주고받았어요`,
+    });
+  }
+  const o = fun.origins.find((x) => x.spread.length >= 2);
+  if (o) {
+    const name = nameOf(o.spread[0].memberId);
+    out.push({
+      key: "origin", label: "유행어 원조", value: `‘${o.text}’`, caption: `처음 쓴 사람, 지금은 ${o.spread.length}명이 써요`, who: [o.spread[0].memberId],
+      text: `유행어 원조 ${name}: ‘${o.text}’를 처음 썼고 지금은 ${o.spread.length}명이 써요`,
+    });
+  }
+  const mood = bestMood(fun);
+  if (mood) {
+    const name = nameOf(mood.memberId);
+    const times = `${mood.times.toFixed(1)}배`;
+    out.push({
+      key: "mood", label: "분위기 메이커", value: times,
+      caption: `말한 날 하루 ${Math.round(mood.withAvg)}개, 없는 날 ${Math.round(mood.withoutAvg)}개`, who: [mood.memberId],
+      text: `분위기 메이커 ${name}: 말한 날엔 방 메시지가 ${times}예요`,
+    });
+  }
+  const ll = fun.laughLength;
+  if (ll.length >= 2 && ll[ll.length - 1].avg - ll[0].avg >= 0.5) {
+    const a = ll[0].avg.toFixed(1);
+    const b = ll[ll.length - 1].avg.toFixed(1);
+    out.push({
+      key: "inflation", label: "ㅋ 인플레이션", value: `${a} → ${b}`, caption: "ㅋㅋ에 들어간 ㅋ 개수 평균, 처음 달 → 마지막 달", who: [],
+      text: `ㅋ 인플레이션: ㅋ 길이가 ${a}개에서 ${b}개로 늘었어요`,
+    });
+  }
+  return out;
 }

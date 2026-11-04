@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { SavedReport } from "@/lib/report/storage";
-import { bestMood } from "@/lib/kakao/fun";
-import { laughRanking, lonelyRanking, replayScene, topOrigin, topResponders, type Slide } from "@/lib/story/slides";
+import { bestMood, laughRanking, lonelyRanking } from "@/lib/kakao/fun";
+import { replayScene, topOrigin, topResponders, type Slide } from "@/lib/story/slides";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { Big, Count, Hero, Line, clock, delay, md, n } from "./parts";
 

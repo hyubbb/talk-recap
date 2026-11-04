@@ -1,6 +1,6 @@
 import type { SavedReport } from "../report/storage";
 import { isSensitive } from "../quiz/sensitive";
-import { bestMood, MIN_SAMPLE, type FunStats } from "../kakao/fun";
+import { bestMood, laughRanking, lonelyRanking, type FunStats } from "../kakao/fun";
 import type { RoomStats } from "../kakao/stats";
 import type { StoryBlock } from "../llm/schema";
 import { quoteKey, type ContextBlock } from "../report/context";
@@ -79,16 +79,6 @@ export function buildSlides(saved: SavedReport, me?: string | null): Slide[] {
   if (bagOwner) slides.push({ id: "bag", kind: "bag", title: `${bagOwner.name}의 가방`, bg: colorOf(bagOwner.name), member: bagOwner.name });
   slides.push({ id: "closing", kind: "closing", title: "총평", bg: NIGHT });
   return slides;
-}
-
-/** 웃음 유발 순위 (표본 충분하고 10% 이상인 사람만) */
-export function laughRanking(fun: FunStats) {
-  return fun.laughs.filter((l) => l.attempts >= MIN_SAMPLE && l.ratio >= 0.1).sort((a, b) => b.ratio - a.ratio);
-}
-
-/** 허공에 외친 비율 순위 */
-export function lonelyRanking(fun: FunStats) {
-  return fun.unanswered.filter((u) => u.turns >= MIN_SAMPLE && u.count > 0).sort((a, b) => b.ratio - a.ratio);
 }
 
 /** 원조가 가려지는 말버릇 (2명 이상 퍼진 것) */

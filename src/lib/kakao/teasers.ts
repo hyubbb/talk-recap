@@ -1,6 +1,6 @@
 import type { RoomStats } from "./stats";
 import { isSensitive } from "../quiz/sensitive";
-import { funLines } from "./fun";
+import { funFacts } from "./fun";
 
 /**
  * AI 분석을 기다리는 동안 돌려 보여줄 "미리 보기" 한 줄들.
@@ -31,6 +31,6 @@ export function buildTeasers(stats: RoomStats, nameOf: (id: string) => string): 
   if (h.longestMessage) out.push(`가장 긴 메시지는 ${n(h.longestMessage.length)}자 · ${nameOf(h.longestMessage.memberId)}`);
   if (h.repeatStreak && !isSensitive(h.repeatStreak.text)) out.push(`같은 말 ${n(h.repeatStreak.count)}연타 · ${nameOf(h.repeatStreak.memberId)}`);
   if (h.topLastWord) out.push(`대화를 제일 많이 끝낸 사람은 ${nameOf(h.topLastWord.memberId)}`);
-  out.push(...funLines(stats.fun, nameOf));
+  for (const f of funFacts(stats.fun, nameOf)) out.push(f.text);
   return out;
 }

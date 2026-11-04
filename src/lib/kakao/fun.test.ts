@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestMood, computeFun, funLines, iga } from "./fun";
+import { bestMood, computeFun, funFacts, type FunStats } from "./fun";
 import type { ChatMessage } from "./types";
 
 // 지어낸 대화. 분 단위로 시각을 적는다.
@@ -73,26 +73,51 @@ describe("computeFun", () => {
   it("분위기 메이커: 말한 날과 안 한 날의 방 하루 평균", () => {
     const day = 24 * 60;
     const msgs: ChatMessage[] = [];
-    for (let d = 0; d < 6; d++) {
-      const loud = d < 3;
+    for (let d = 0; d < 10; d++) {
+      const loud = d < 5;
       for (let k = 0; k < (loud ? 9 : 2); k++) msgs.push(msg(d * day + k, k % 2 ? "고등어" : "도토리", "얘기"));
       if (loud) msgs.push(msg(d * day + 30, "감자", "왔다"));
     }
     const f = run(msgs);
     const gamja = f.mood.find((m) => m.memberId === "감자")!;
-    expect(gamja).toMatchObject({ withDays: 3, withoutDays: 3, withAvg: 10, withoutAvg: 2 });
+    expect(gamja).toMatchObject({ withDays: 5, withoutDays: 5, withAvg: 10, withoutAvg: 2 });
     expect(bestMood(f)?.memberId).toBe("감자");
+  });
+
+  it("분위기 메이커: 거의 매일 말하는 사람(안 한 날이 며칠뿐)은 배수가 튀어서 뺀다", () => {
+    const fun = { mood: [{ memberId: "도토리", withAvg: 74, withoutAvg: 2, withDays: 95, withoutDays: 5 }] } as FunStats;
+    expect(bestMood(fun)).toBeNull();
   });
 });
 
-describe("funLines", () => {
+describe("funFacts", () => {
+  const base: FunStats = {
+    laughs: [
+      { memberId: "도토리", attempts: 100, triggers: 51, ratio: 0.51 },
+      { memberId: "고등어", attempts: 5, triggers: 5, ratio: 1 },
+    ],
+    unanswered: [{ memberId: "감자", turns: 200, count: 2, ratio: 0.01 }],
+    loneliest: null,
+    rally: { a: "도토리", b: "Janice", turns: 61, ts: 0, minutes: 30 },
+    laughLength: [],
+    origins: [],
+    mood: [],
+  };
+
   it("예전 결과(fun 없음)는 빈 목록", () => {
-    expect(funLines(undefined, (id) => id)).toEqual([]);
+    expect(funFacts(undefined, (id) => id)).toEqual([]);
   });
 
-  it("이름 뒤 조사는 받침에 따라", () => {
-    expect(iga("도토리")).toBe("도토리가");
-    expect(iga("김철수 책")).toBe("김철수 책이");
-    expect(iga("Janice")).toBe("Janice이(가)");
+  it("표본이 적은 사람은 빼고, 10% 미만 허공 비율은 안 보여준다", () => {
+    const facts = funFacts(base, (id) => id);
+    expect(facts.map((f) => f.key)).toEqual(["laugh", "rally"]);
+    expect(facts[0]).toMatchObject({ value: "51%", who: ["도토리"] });
+    expect(facts[1]).toMatchObject({ value: "61턴", who: ["도토리", "Janice"] });
+  });
+
+  it("한 줄 요약은 이름 뒤 조사가 필요 없다 (영문 이름)", () => {
+    const facts = funFacts({ ...base, laughs: [{ memberId: "Janice", attempts: 100, triggers: 40, ratio: 0.4 }] }, (id) => id);
+    expect(facts[0].text).toBe("웃음 버튼 Janice: 말하면 40% 확률로 ㅋㅋ가 터져요");
+    expect(facts.some((f) => /이\(가\)/.test(f.text))).toBe(false);
   });
 });

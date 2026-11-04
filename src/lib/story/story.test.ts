@@ -27,7 +27,7 @@ describe("buildSlides", () => {
   it("표본이 적거나 비율이 낮은 웃음·허공은 장을 만들지 않는다", () => {
     const r = fakeReport(3);
     r.stats.fun!.laughs = r.stats.fun!.laughs.map((l) => ({ ...l, attempts: 5 }));
-    r.stats.fun!.unanswered = r.stats.fun!.unanswered.map((u) => ({ ...u, count: 0 }));
+    r.stats.fun!.unanswered = r.stats.fun!.unanswered.map((u) => ({ ...u, count: 3, ratio: 0.01 }));
     r.stats.fun!.loneliest = null;
     const kinds = buildSlides(r).map((x) => x.kind);
     expect(kinds).not.toContain("laugh");

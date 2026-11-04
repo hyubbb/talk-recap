@@ -5,7 +5,8 @@ import type { SavedReport } from "@/lib/report/storage";
 import type { Quote, StoryBlock } from "@/lib/llm/schema";
 import type { PhraseSample } from "@/lib/report/context";
 import { isSensitive } from "@/lib/quiz/sensitive";
-import { funLines } from "@/lib/kakao/fun";
+import { funFacts } from "@/lib/kakao/fun";
+import { FunFacts } from "./FunFacts";
 import { ContextsProvider, ContextView, QuoteList } from "./Quotes";
 import { initialOf } from "@/lib/ui/colors";
 import { useRef, useState } from "react";
@@ -40,7 +41,9 @@ export function ReportView({ saved, shared, actions }: Props) {
   const pairs = [...report.pairs].sort((a, b) => b.score - a.score);
   const isMock = saved.provider === "mock";
   const idOf = new Map(members.map((m) => [m.name, m.id]));
-  const facts = funLines(stats.fun, (id) => members.find((m) => m.id === id)?.name ?? "누군가");
+  const memberName = (id: string) => members.find((m) => m.id === id)?.name ?? "누군가";
+  const memberColor = (id: string) => members.find((m) => m.id === id)?.color ?? "var(--color-haze)";
+  const facts = funFacts(stats.fun, memberName);
   // 말버릇: 분석 때 뽑은 장면이 있으면 그걸, 예전 결과면 통계의 말버릇만 (장면 없이)
   const phrasesOf = (name: string): PhraseSample[] => {
     const id = idOf.get(name);
@@ -93,14 +96,7 @@ export function ReportView({ saved, shared, actions }: Props) {
 
       {facts.length > 0 && (
         <Section title="숫자로 본 우리 방">
-          <ul className="flex flex-col gap-2">
-            {facts.map((f) => (
-              <li key={f} className="rounded-[14px] bg-dusk px-4 py-3 text-[15px] leading-[1.5] font-semibold">
-                {f}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-[12px] text-haze">AI가 아니라 대화에서 직접 센 숫자예요</p>
+          <FunFacts facts={facts} nameOf={memberName} colorOf={memberColor} />
         </Section>
       )}
 
