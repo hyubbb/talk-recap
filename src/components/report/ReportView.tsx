@@ -7,6 +7,8 @@ import type { PhraseSample } from "@/lib/report/context";
 import { isSensitive } from "@/lib/quiz/sensitive";
 import { funFacts } from "@/lib/kakao/fun";
 import { FunFacts } from "./FunFacts";
+import { HoursMap, LaughChart, OriginSpread, RecordTiles, Responders, dutyTiles, hiddenTiles } from "./RoomRecords";
+import { topOrigin, topResponders } from "@/lib/story/slides";
 import { ContextsProvider, ContextView, QuoteList } from "./Quotes";
 import { initialOf } from "@/lib/ui/colors";
 import { useRef, useState } from "react";
@@ -44,6 +46,9 @@ export function ReportView({ saved, shared, actions }: Props) {
   const memberName = (id: string) => members.find((m) => m.id === id)?.name ?? "누군가";
   const memberColor = (id: string) => members.find((m) => m.id === id)?.color ?? "var(--color-haze)";
   const facts = funFacts(stats.fun, memberName);
+  const hidden = hiddenTiles(stats, stats.fun);
+  const hasOrigin = !!stats.fun && !!topOrigin(stats.fun);
+  const hasLaughChart = (stats.fun?.laughLength.length ?? 0) >= 2;
   // 말버릇: 분석 때 뽑은 장면이 있으면 그걸, 예전 결과면 통계의 말버릇만 (장면 없이)
   const phrasesOf = (name: string): PhraseSample[] => {
     const id = idOf.get(name);
@@ -94,9 +99,14 @@ export function ReportView({ saved, shared, actions }: Props) {
 
       {actions}
 
-      {facts.length > 0 && (
+      {(facts.length > 0 || hasOrigin || hasLaughChart) && (
         <Section title="숫자로 본 우리 방">
-          <FunFacts facts={facts} nameOf={memberName} colorOf={memberColor} />
+          <div className="flex flex-col gap-2.5">
+            <FunFacts facts={facts} nameOf={memberName} colorOf={memberColor} />
+            {stats.fun && <OriginSpread fun={stats.fun} nameOf={memberName} colorOf={memberColor} />}
+            {stats.fun && <LaughChart fun={stats.fun} />}
+          </div>
+          <CountedNote />
         </Section>
       )}
 
@@ -160,6 +170,26 @@ export function ReportView({ saved, shared, actions }: Props) {
           ))}
         </ul>
       </Section>
+
+      {topResponders(stats).length > 0 && (
+        <Section title="누가 누구 말을 받나">
+          <Responders stats={stats} nameOf={memberName} colorOf={memberColor} />
+        </Section>
+      )}
+
+      <Section title="하루 시간표">
+        <div className="flex flex-col gap-2.5">
+          <HoursMap stats={stats} nameOf={memberName} colorOf={memberColor} />
+          <RecordTiles tiles={dutyTiles(stats)} nameOf={memberName} colorOf={memberColor} />
+        </div>
+      </Section>
+
+      {hidden.length > 0 && (
+        <Section title="숨은 기록">
+          <RecordTiles tiles={hidden} nameOf={memberName} colorOf={memberColor} />
+          <CountedNote />
+        </Section>
+      )}
 
       <Section title="MBTI 추론">
         <div className="flex flex-col gap-3">
@@ -240,6 +270,10 @@ export function ReportView({ saved, shared, actions }: Props) {
     </main>
     </ContextsProvider>
   );
+}
+
+function CountedNote() {
+  return <p className="mt-3 text-[12px] text-haze">AI가 아니라 대화에서 직접 센 숫자예요</p>;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
