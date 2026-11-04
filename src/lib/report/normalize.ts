@@ -22,7 +22,9 @@ export function normalizeReport(report: Report): Report {
     ...report,
     members: report.members.map((raw) => {
       const base = raw as LegacyMember & Report["members"][number];
-      const m = { ...base, archetype: unquote(base.archetype), oneLiner: unquote(base.oneLiner ?? "") };
+      const archetype = unquote(base.archetype);
+      const oneLiner = unquote(base.oneLiner ?? "");
+      const m = archetype === base.archetype && oneLiner === base.oneLiner ? base : { ...base, archetype, oneLiner };
       if (Array.isArray(m.sections) && Array.isArray(m.scenes)) return m;
       const legacy: [string, string | undefined][] = [
         ["변화", m.change],
