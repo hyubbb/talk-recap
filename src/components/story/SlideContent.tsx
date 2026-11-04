@@ -21,7 +21,7 @@ const clean = (s: string) => s.replace(/\(목업\)\s*/g, "").trim();
 function Big({ children }: { children: React.ReactNode }) {
   return <p className="tabular text-[clamp(48px,16cqw,84px)] leading-[1.02] font-black tracking-[-0.04em]">{children}</p>;
 }
-/** 대화에서 꺼낸 말한마디. 카톡 말풍선 모양, 왼쪽·오른쪽으로 번갈아 */
+/** 대화에서 꺼낸 말한마디. 카톡 말풍선 모양 (right = 보낸 메시지처럼 오른쪽) */
 function Bubble({ text, ink, right, faint }: { text: string; ink: string; right?: boolean; faint?: boolean }) {
   return (
     <span
@@ -33,23 +33,18 @@ function Bubble({ text, ink, right, faint }: { text: string; ink: string; right?
   );
 }
 
-/** 가운데 제목. 위아래로 관련 말풍선을 두 개씩 띄운다 */
+/** 가운데 제목. 관련 말은 제목 아래 오른쪽에 보낸 메시지처럼 쌓는다 */
 function Hero({ words, ink, children }: { words: string[]; ink: string; children: React.ReactNode }) {
-  const above = words.slice(0, 2);
-  const below = words.slice(2, 4);
-  const stack = (list: string[], offset: number) =>
-    list.length > 0 && (
-      <div className="flex w-full flex-col gap-1.5 px-2" aria-hidden>
-        {list.map((w, i) => (
-          <Bubble key={w} text={w} ink={ink} right={(i + offset) % 2 === 1} faint={offset === 0 ? i === 0 : i === 1} />
-        ))}
-      </div>
-    );
   return (
     <div className="my-auto flex flex-col items-center gap-6 py-6 text-center">
-      {stack(above, 0)}
       <div className="flex flex-col items-center">{children}</div>
-      {stack(below, 2)}
+      {words.length > 0 && (
+        <div className="flex w-full flex-col items-end gap-1.5" aria-hidden>
+          {words.map((w) => (
+            <Bubble key={w} text={w} ink={ink} right />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

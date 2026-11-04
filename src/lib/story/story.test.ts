@@ -25,7 +25,7 @@ describe("buildSlides", () => {
     expect(buildSlides(r).some((x) => x.kind === "pair")).toBe(false);
   });
 
-  it("관련 단어는 최대 4개, 중복·민감 단어 없이", () => {
+  it("관련 단어는 최대 3개, 중복·민감 단어 없이", () => {
     const r = fakeReport(3);
     r.stats.members[0].catchphrases = [
       { text: "배고파", count: 9 },
@@ -35,7 +35,7 @@ describe("buildSlides", () => {
     ];
     for (const s of buildSlides(r)) {
       const w = relatedWords(s, r);
-      expect(w.length).toBeLessThanOrEqual(4);
+      expect(w.length).toBeLessThanOrEqual(3);
       expect(new Set(w).size).toBe(w.length);
       expect(w).not.toContain("병원 가야돼");
     }

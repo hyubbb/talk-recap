@@ -68,7 +68,7 @@ export function safePair(saved: SavedReport) {
 }
 
 /**
- * 제목 위아래에 흐리게 띄울 관련 단어 최대 4개 (앞 2개는 위, 뒤 2개는 아래).
+ * 제목 아래 오른쪽에 메시지처럼 띄울 관련 단어 최대 3개.
  * 실제 대화에서 나온 말버릇·이름·아이템만 쓰고 민감 주제는 뺀다.
  */
 export function relatedWords(slide: Slide, saved: SavedReport): string[] {
@@ -125,7 +125,7 @@ export function relatedWords(slide: Slide, saved: SavedReport): string[] {
   for (const w of words) {
     const t = w.replace(/\(목업\)\s*/g, "").trim();
     if (t && t.length <= 14 && /[\p{L}\p{N}]/u.test(t) && !isSensitive(t) && !out.includes(t)) out.push(t);
-    if (out.length === 4) break;
+    if (out.length === 3) break;
   }
   return out;
 }
