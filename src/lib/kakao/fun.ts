@@ -246,8 +246,8 @@ export function funFacts(fun: FunStats | undefined, nameOf: (id: string) => stri
   if (fun.rally) {
     const r = fun.rally;
     out.push({
-      key: "rally", label: "핑퐁 랠리", value: `${r.turns}턴`, caption: "둘이서 쉼지 않고 주고받은 최장 기록", who: [r.a, r.b],
-      text: `핑퐁 랠리 ${nameOf(r.a)} ↔ ${nameOf(r.b)}: 쉼지 않고 ${r.turns}번 주고받았어요`,
+      key: "rally", label: "핑퐁 랠리", value: `${r.turns}턴`, caption: "둘이서 쉬지 않고 주고받은 최장 기록", who: [r.a, r.b],
+      text: `핑퐁 랠리 ${nameOf(r.a)} ↔ ${nameOf(r.b)}: 쉬지 않고 ${r.turns}번 주고받았어요`,
     });
   }
   const o = fun.origins.find((x) => x.spread.length >= 2);
