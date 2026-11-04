@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { hashToken, isValidSlug, newDeleteToken, newSlug, randomBase62, SLUG_LENGTH, verifyToken } from "./token";
 import { savedReportSchema } from "./schema";
+import { fakeReport } from "../testing/fakeReport";
 
 describe("공유 슬러그", () => {
   it("12자 이상 base62이고 매번 다르다", () => {
@@ -101,6 +102,14 @@ describe("공유 본문 검증", () => {
 
   it("정상 본문은 통과", () => {
     expect(savedReportSchema.safeParse(sample).success).toBe(true);
+  });
+
+  it("지금 모양(잠수·텔레파시 같은 기록, 우리 방 사전) 결과도 통과", () => {
+    const r = fakeReport(3);
+    const parsed = savedReportSchema.safeParse(r);
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.stats.records?.jinx?.count).toBe(7);
+    expect(parsed.data?.report.dictionary).toHaveLength(2);
   });
 
   it("예전 모양 결과(꼭지 없음, 변화·스트레스·챙김 있음)와 근거 문맥도 받는다", () => {
