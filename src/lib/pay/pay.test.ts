@@ -31,7 +31,7 @@ describe("주문", () => {
   it("상품", () => {
     expect(PRODUCTS.map((p) => [p.price, p.days])).toEqual([
       [900, 100],
-      [1500, 365],
+      [1900, 365],
     ]);
     expect(productById("lite")?.price).toBe(900);
     expect(productById("nope")).toBeNull();

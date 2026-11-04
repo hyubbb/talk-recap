@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PRODUCTS, priceLabel } from "@/lib/legal/business";
+import { PRODUCTS, SERVICE_PERIOD, priceLabel } from "@/lib/legal/business";
 import { PeriodNotice } from "@/components/pay/PeriodNotice";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -40,7 +40,8 @@ export default function PricingPage() {
                 <li>
                   · AI 리포트, 스토리 슬라이드, 멤버·가방 카드, 이미지 저장
                 </li>
-                <li>· 공유 링크(30일), 퀴즈, 반박 투표</li>
+                <li>· 공유 링크, 퀴즈, 반박 투표</li>
+                <li>· 결과 다시 보기·공유 링크는 분석일부터 {SERVICE_PERIOD.resultDays}일 (요금제 상관없이 동일)</li>
                 <li>· 분석 1회, 결제 즉시 분석 (부가세 포함)</li>
               </ul>
             </li>

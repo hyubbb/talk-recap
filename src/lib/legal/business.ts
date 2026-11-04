@@ -30,7 +30,7 @@ export const pending = (v: string | null) => v ?? "준비 중";
  */
 export const PRODUCTS = [
   { id: "lite", name: "라이트 분석", price: 900, days: 100, scope: "최대 100일 기간의 대화를 AI로 분석" },
-  { id: "full", name: "1년 분석", price: 1500, days: 365, scope: "최대 1년 기간의 대화를 AI로 분석" },
+  { id: "full", name: "1년 분석", price: 1900, days: 365, scope: "최대 1년 기간의 대화를 AI로 분석" },
 ] as const;
 
 export type ProductId = (typeof PRODUCTS)[number]["id"];
@@ -51,9 +51,12 @@ export const SERVICE_PERIOD = {
 
 export const won = (n: number) => `${n.toLocaleString("ko-KR")}원`;
 
-/** 요금 표기: "900원(100일)", "1500원(1년)" */
+/**
+ * 요금 표기: "900원(대화 100일치)", "1,900원(대화 1년치)".
+ * 괄호 안은 분석할 대화 기간이고 이용 기간이 아니다. 결과·공유 링크는 요금제와 상관없이 SERVICE_PERIOD.resultDays.
+ */
 export const periodLabel = (days: number) => (days >= 365 ? "1년" : `${days}일`);
-export const priceLabel = (p: { price: number; days: number }) => `${p.price}원(${periodLabel(p.days)})`;
+export const priceLabel = (p: { price: number; days: number }) => `${won(p.price)}(대화 ${periodLabel(p.days)}치)`;
 
 /** 분석 기간(일) 계산을 화면·결제에서 같은 식으로 쓴다 */
 export const DAY_MS = 86_400_000;

@@ -9,7 +9,7 @@
 |---|---|
 | 기간 | 2026.10 ~ |
 | 역할 | 1인 기획·디자인·프론트엔드·백엔드 (AI 코딩 에이전트와 협업) |
-| 상태 | 토스페이 입점 심사 완료, 유료 상품 2종(라이트 900원 / 1년 분석 1,500원) |
+| 상태 | 토스페이 입점 심사 완료, 유료 상품 2종(라이트 900원 / 1년 분석 1,900원) |
 | 스택 | Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Jotai · TanStack Query · Web Worker · OpenAI API · Zod · Supabase · 토스페이 · Vercel |
 | 규모 | 화면 12개, API 라우트 11개, 테스트 98개(Vitest) |
 
