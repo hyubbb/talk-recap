@@ -41,6 +41,9 @@ describe("buildSlides", () => {
     }
     const opening = buildSlides(r).find((s) => s.kind === "opening")!;
     expect(relatedWords(opening, r)).toContain("배고파");
+    for (const kind of ["ranking", "mbti", "awards", "bag", "closing"]) {
+      expect(relatedWords(buildSlides(r).find((s) => s.kind === kind)!, r)).toEqual([]);
+    }
   });
 
   it("배경이 밝으면 어두운 글자", () => {

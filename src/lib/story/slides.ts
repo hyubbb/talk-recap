@@ -68,11 +68,11 @@ export function safePair(saved: SavedReport) {
 }
 
 /**
- * 제목 아래 오른쪽에 메시지처럼 띄울 관련 단어 최대 3개.
- * 실제 대화에서 나온 말버릇·이름·아이템만 쓰고 민감 주제는 뺀다.
+ * 제목 아래 오른쪽에 메시지처럼 띄울 실제 말버릇 최대 3개.
+ * 오프닝·말버릇·멤버 장에만 둔다. 다른 장은 화면에 이미 있는 이름·MBTI·아이템을 되풀이할 뿐이라 빼고, 민감 주제는 뺀다.
  */
 export function relatedWords(slide: Slide, saved: SavedReport): string[] {
-  const { stats, report, members } = saved;
+  const { stats, members } = saved;
   const nameOf = (id: string) => members.find((m) => m.id === id)?.name ?? "";
   const phrases = (list: { text: string; count: number }[]) => list.map((c) => c.text.trim());
   const allPhrases = () => {
@@ -80,50 +80,17 @@ export function relatedWords(slide: Slide, saved: SavedReport): string[] {
     for (const m of stats.members) for (const c of m.catchphrases.slice(0, 3)) all.push(c);
     return phrases(all.sort((a, b) => b.count - a.count));
   };
-  const ranked = () => [...stats.members].sort((a, b) => b.messages - a.messages).map((m) => nameOf(m.id));
 
   let words: string[] = [];
-  switch (slide.kind) {
-    case "opening":
-    case "closing":
-      words = allPhrases();
-      break;
-    case "ranking":
-      words = ranked().slice(1);
-      break;
-    case "catchphrase":
-      words = allPhrases().slice(1);
-      break;
-    case "hours": {
-      const order = stats.hours.map((v, h) => ({ v, h })).sort((a, b) => b.v - a.v);
-      words = order.slice(1, 5).filter((x) => x.v > 0).map((x) => `${x.h}시`);
-      break;
-    }
-    case "acts":
-      words = report.acts.map((a) => a.period);
-      break;
-    case "member": {
-      const st = stats.members.find((x) => nameOf(x.id) === slide.member);
-      words = st ? phrases(st.catchphrases) : [];
-      break;
-    }
-    case "pair":
-    case "mbti":
-      words = report.members.map((m) => m.mbti.type);
-      break;
-    case "awards":
-      words = report.awards.map((a) => a.winner);
-      break;
-    case "bag":
-      words = report.members.find((m) => m.name === slide.member)?.bag.items.map((i) => i.item) ?? [];
-      break;
-    case "hidden":
-      words = ranked();
-      break;
+  if (slide.kind === "opening") words = allPhrases();
+  else if (slide.kind === "catchphrase") words = allPhrases().slice(1);
+  else if (slide.kind === "member") {
+    const st = stats.members.find((x) => nameOf(x.id) === slide.member);
+    words = st ? phrases(st.catchphrases) : [];
   }
   const out: string[] = [];
   for (const w of words) {
-    const t = w.replace(/\(목업\)\s*/g, "").trim();
+    const t = w.trim();
     if (t && t.length <= 14 && /[\p{L}\p{N}]/u.test(t) && !isSensitive(t) && !out.includes(t)) out.push(t);
     if (out.length === 3) break;
   }
