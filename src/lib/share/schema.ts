@@ -79,7 +79,7 @@ const block = z.object({ title: s(200), text: s(3000), quotes: z.array(quote).ma
 
 /**
  * 공유받을 리포트: 지금 모양(reportSchema)이 기본이고, 예전 버전에서 만든 결과도 공유할 수 있게
- * 새로 생긴 칸(한줄평·명장면·꼭지·어워드 인용)은 없어도 받고, 예전 칸(변화·스트레스·챙김)도 받는다.
+ * 새로 생긴 칸(한줄평·명장면·꼭지·어워드 인용·사전)은 없어도 받고, 예전 칸(변화·스트레스·챙김)도 받는다.
  * 읽을 때 normalizeReport로 지금 모양으로 맞춘다.
  */
 const memberShape = reportSchema.shape.members.element;
@@ -95,6 +95,7 @@ const sharedReportSchema = reportSchema.extend({
     }),
   ),
   awards: z.array(reportSchema.shape.awards.element.extend({ quotes: z.array(quote).max(3).optional() })),
+  dictionary: z.array(z.object({ word: s(40), meaning: s(500), quotes: z.array(quote).max(3) })).max(10).optional(),
 });
 
 const contextLine = z.object({ date: s(10), time: s(5), who: s(60), text: s(400) });

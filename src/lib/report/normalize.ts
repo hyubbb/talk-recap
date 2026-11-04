@@ -1,7 +1,7 @@
 import type { Report } from "../llm/schema";
 
 /**
- * 예전 버전 결과(꼭지·명장면·한줄평·어워드 인용이 없고 변화/스트레스/챙김 칸이 있던 모양)를
+ * 예전 버전 결과(꼭지·명장면·한줄평·어워드 인용·사전이 없고 변화/스트레스/챙김 칸이 있던 모양)를
  * 지금 모양으로 맞춘다. 예전 칸은 꼭지로 옮겨서 정보가 사라지지 않게 한다.
  */
 type LegacyMember = Partial<Report["members"][number]> & { change?: string; stress?: string; care?: string };
@@ -39,5 +39,6 @@ export function normalizeReport(report: Report): Report {
       };
     }),
     awards: report.awards.map((a) => ({ ...a, quotes: a.quotes ?? [] })),
+    dictionary: report.dictionary ?? [],
   };
 }

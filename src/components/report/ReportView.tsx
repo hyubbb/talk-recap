@@ -9,6 +9,7 @@ import { funFacts } from "@/lib/kakao/fun";
 import { recordFacts } from "@/lib/kakao/records";
 import { TileGrid, factTiles } from "./FunFacts";
 import { MyRecords } from "./MyRecords";
+import { Dictionary } from "./Dictionary";
 import { Calendar, HoursMap, LaughChart, OriginSpread, RecordTiles, Responders, dutyTiles, hiddenTiles } from "./RoomRecords";
 import { topOrigin, topResponders } from "@/lib/story/slides";
 import { ContextsProvider, ContextView, QuoteList } from "./Quotes";
@@ -130,6 +131,13 @@ export function ReportView({ saved, shared, actions, me }: Props) {
           ))}
         </ol>
       </Section>
+
+      {(report.dictionary?.length ?? 0) > 0 && (
+        <Section title="우리 방 사전">
+          <Dictionary saved={saved} />
+          <p className="mt-3 text-[12px] text-haze">말은 대화에서 직접 골랐고, 뜻풀이는 AI가 썼어요</p>
+        </Section>
+      )}
 
       <Section title="멤버">
         <div className="flex flex-col gap-4">

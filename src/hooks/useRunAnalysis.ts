@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { analysisAtom, type ChunkRun } from "@/state/analysis";
 import { groupsAtom, rangeAtom, statsAtom } from "@/state/upload";
-import { periodLabel, statsDigest } from "@/lib/report/digest";
+import { dictionaryWords, periodLabel, statsDigest } from "@/lib/report/digest";
 import { newReportId, saveReport } from "@/lib/report/storage";
 import { memberColor } from "@/lib/ui/colors";
 import type { ChunkNotes, Report } from "@/lib/llm/schema";
@@ -161,6 +161,7 @@ export function useRunAnalysis(
           period: periodLabel(stats),
           members: names,
           statsDigest: statsDigest(stats, (id) => nameOf.get(id) ?? id),
+          words: dictionaryWords(stats),
           notes: ok,
         }, auth);
         usage.input += r.usage.input;

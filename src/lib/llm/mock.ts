@@ -42,7 +42,7 @@ const MOCK_BAG = ["휴대폰", "무선 이어폰", "보조배터리", "컵라면
 
 const TYPES = ["ENFP", "INFJ", "INFP", "ISFJ", "ISTP", "ESTJ", "ENTP", "ISFP"];
 
-export function mockReport(notes: ChunkNotes[], members: string[]): Report {
+export function mockReport(notes: ChunkNotes[], members: string[], words: string[] = []): Report {
   const all = (name: string) => notes.flatMap((n) => n.members.find((m) => m.name === name)?.quotes ?? []);
   const quotes = (name: string) => all(name).slice(0, 5);
   const SECTION_TITLES = ["(목업) 생활력", "(목업) 드립 스타일", "(목업) 약속 잡기", "(목업) 먹부림", "(목업) 사진 투척", "(목업) 새벽 감성"];
@@ -86,6 +86,11 @@ export function mockReport(notes: ChunkNotes[], members: string[]): Report {
       winner: name,
       reason: "(목업)",
       quotes: all(name).slice(-1),
+    })),
+    dictionary: words.slice(0, 4).map((word) => ({
+      word,
+      meaning: "(목업) 이 방에서 쓰는 뜻",
+      quotes: notes.flatMap((n) => n.members.flatMap((m) => m.quotes)).filter((q) => q.text.includes(word)).slice(0, 2),
     })),
     closing: "(목업) 총평",
   };

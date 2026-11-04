@@ -77,6 +77,10 @@ export function fakeReport(count = 5, quotesEach = 6): SavedReport {
         { a: names[0], b: names[1], score: 90, label: "티키타카", reason: "말이 잘 통함" },
       ],
       awards: [{ title: "수다왕", winner: names[0], reason: "1000개", quotes: [{ date: "7/1", who: names[0], text: `${names[0]}의 명언 0번째` }] }],
+      dictionary: [
+        { word: "가보자고", meaning: "일단 저지르고 보자는 뜻", quotes: [{ date: "7/21", who: names[0], text: "주말에 가보자고" }] },
+        { word: "흠", meaning: "할 말은 많지만 참는 소리", quotes: [] },
+      ],
       closing: "다음 100일도 잘 부탁해요",
     },
     usage: { input: 0, output: 0 },

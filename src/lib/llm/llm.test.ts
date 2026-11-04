@@ -50,6 +50,33 @@ describe("mock", () => {
     const notes = mockChunkNotes(CHUNK, ["가나다", "라마바"]);
     expect(chunkNotesSchema.parse(notes)).toBeTruthy();
     expect(reportSchema.parse(mockReport([notes], ["가나다", "라마바"]))).toBeTruthy();
+    const withWords = mockReport([notes], ["가나다", "라마바"], ["퇴근"]);
+    expect(withWords.dictionary[0]).toMatchObject({ word: "퇴근", quotes: [{ text: "퇴근하고 싶다 진짜" }] });
+  });
+});
+
+describe("verifyReport 사전", () => {
+  it("후보에 있는 말만, 민감한 뜻풀이·중복은 빼고, 인용은 그 말이 들어간 노트 인용만", async () => {
+    const { verifyReport } = await import("./verify");
+    const { fakeReport } = await import("../testing/fakeReport");
+    const r = fakeReport(2).report;
+    const known = [
+      { date: "7/21", who: "도토리", text: "주말에 가보자고" },
+      { date: "7/22", who: "고등어", text: "오늘 점심 뭐 먹지" },
+    ];
+    r.dictionary = [
+      { word: " 가보자고 ", meaning: "일단 저지르자는 뜻", quotes: [known[0], known[1], { date: "7/1", who: "도토리", text: "가보자고 지어냄" }] },
+      { word: "가보자고", meaning: "중복", quotes: [] },
+      { word: "아무 말", meaning: "후보에 없는 말", quotes: [] },
+      { word: "흠", meaning: "병원 가기 전에 하는 말", quotes: [] },
+      { word: "출근", meaning: "회사 가기 싫다는 뜻", quotes: [] },
+    ];
+    const v = verifyReport(r, known, ["가보자고", "흠", "출근"]);
+    expect(v.dictionary).toEqual([
+      { word: "가보자고", meaning: "일단 저지르자는 뜻", quotes: [known[0]] },
+      { word: "출근", meaning: "회사 가기 싫다는 뜻", quotes: [] },
+    ]);
+    expect(verifyReport(r, known).dictionary).toEqual([]);
   });
 });
 

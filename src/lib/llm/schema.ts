@@ -83,6 +83,8 @@ export const reportSchema = z.object({
   ),
   /** quotes: 수상 근거가 되는 수상자 본인의 원문 1~2개 */
   awards: z.array(z.object({ title: z.string(), winner: z.string(), reason: z.string(), quotes: z.array(quote) })),
+  /** 우리 방 사전: 코드로 뽑은 이 방 말버릇·유행어(후보)에 붙인 뜻풀이. quotes는 그 말이 들어간 원문 */
+  dictionary: z.array(z.object({ word: z.string(), meaning: z.string(), quotes: z.array(quote) })),
   closing: z.string(),
 });
 export type Report = z.infer<typeof reportSchema>;

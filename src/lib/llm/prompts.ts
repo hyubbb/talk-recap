@@ -36,7 +36,7 @@ export function chunkPrompt(input: {
 ${RULES}`;
 }
 
-export function synthPrompt(input: { members: string[]; period: string; statsDigest: string }): string {
+export function synthPrompt(input: { members: string[]; period: string; statsDigest: string; words: string[] }): string {
   return `너는 단톡방 전체(${input.period})를 구간별로 분석한 노트를 받아 최종 리포트를 쓰는 사람이다.
 멤버: ${input.members.join(", ")}
 
@@ -63,6 +63,10 @@ ${input.statsDigest}
   점수는 답장·호명 통계와 노트 근거로 쌍마다 다르게 매기고 전부 80점 이상으로 몰지 않는다. 70점 이상인 쌍은 빠짐없이 넣는다.
 - awards: 부문별 어워드 6~8개 (유행어상, 눈물상 같은 식. 통계 근거가 있으면 숫자를 쓴다)
   - quotes: 수상 이유가 보이는 수상자 본인의 원문 1~2개
+- dictionary: 우리 방 사전 3~5개. word는 아래 후보 중에서만 고르고 글자 그대로 쓴다. 후보에 없는 말은 넣지 않는다.
+  - meaning: 이 방에서 그 말이 실제로 쓰이는 뜻·상황을 사전 뜻풀이처럼 한 문장 (예: 이해 못 했지만 일단 넘어가자는 뜻)
+  - quotes: 그 말이 들어간 노트 인용 1~2개 (없으면 빈 배열)
+  후보: ${input.words.length ? input.words.join(", ") : "(없음, dictionary는 빈 배열)"}
 - closing: 총평 2~3문장
 - 모든 quotes는 노트에 있는 인용을 원문 그대로 옮긴다 (date, who, text). 노트에 없는 인용은 만들지 않는다.
 ${RULES}`;

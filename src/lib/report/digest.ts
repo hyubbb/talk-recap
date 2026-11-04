@@ -1,12 +1,30 @@
-import type { RoomStats } from "@/lib/kakao/stats";
-import { funFacts } from "@/lib/kakao/fun";
-import { recordFacts } from "@/lib/kakao/records";
+import type { RoomStats } from "../kakao/stats";
+import { COMMON, funFacts, laughOnly } from "../kakao/fun";
+import { isSensitive } from "../quiz/sensitive";
+import { recordFacts } from "../kakao/records";
 
 const fmt = (ts: number) => {
   const d = new Date(ts);
   return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}`;
 };
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
+
+/**
+ * 우리 방 사전 후보: 여러 명에게 퍼진 유행어부터, 그다음 멤버마다 많이 쓴 말버릇.
+ * 흔한 대답·ㅋㅋ만 있는 말·민감한 말은 뺀다. AI는 이 안에서만 고르고 verifyReport가 다시 거른다.
+ */
+export function dictionaryWords(stats: RoomStats, limit = 15): string[] {
+  const out: string[] = [];
+  const add = (raw: string) => {
+    const t = raw.trim();
+    if (out.length >= limit || t.length < 2 || t.length > 20 || out.includes(t)) return;
+    if (COMMON.has(t.toLowerCase()) || laughOnly(t) || !/[\p{L}\p{N}]/u.test(t) || isSensitive(t)) return;
+    out.push(t);
+  };
+  for (const o of stats.fun?.origins ?? []) add(o.text);
+  for (let k = 0; k < 3; k++) for (const m of stats.members) if (m.catchphrases[k]) add(m.catchphrases[k].text);
+  return out;
+}
 
 export function periodLabel(stats: RoomStats): string {
   return `${fmt(stats.start)}~${fmt(stats.end)}`;

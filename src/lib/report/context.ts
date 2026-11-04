@@ -82,7 +82,7 @@ function block(list: Row[], i: number, radius = RADIUS): ContextBlock {
   return { lines, focus: i - from };
 }
 
-/** 리포트에 쓰인 모든 인용 (멤버·명장면·꼭지·어워드) */
+/** 리포트에 쓰인 모든 인용 (멤버·명장면·꼭지·어워드·사전) */
 export function reportQuotes(report: Report): Quote[] {
   const out: Quote[] = [];
   for (const m of report.members) {
@@ -90,6 +90,7 @@ export function reportQuotes(report: Report): Quote[] {
     for (const b of [...(m.scenes ?? []), ...(m.sections ?? [])]) for (const q of b.quotes) out.push(q);
   }
   for (const a of report.awards) for (const q of a.quotes ?? []) out.push(q);
+  for (const d of report.dictionary ?? []) for (const q of d.quotes) out.push(q);
   return out;
 }
 
