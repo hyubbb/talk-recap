@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { SERVICE_PERIOD, priceLabel, productForDays } from "@/lib/legal/business";
+import { PRODUCTS, SERVICE_PERIOD, periodLabel, priceLabel, productForDays, won } from "@/lib/legal/business";
 
 const fmt = (ts: number) => {
   const d = new Date(ts);
@@ -85,7 +85,8 @@ export function PayConfirm({
         {product ? (
           <>
             <p className="mt-3 text-[13px] leading-[1.6] text-haze">
-              {days}일은 {product.days >= 365 ? "100일을 넘어 1년 요금" : "100일 이하라 100일 요금"}이 적용돼요. 결제가 끝나면 바로 분석해서 보통 1~3분 안에 결과가
+              요금은 {PRODUCTS.map((p, i) => `${i ? `${PRODUCTS[i - 1].days + 1}일~` : ""}${periodLabel(p.days)}${i ? "" : " 이하"} ${won(p.price)}`).join(", ")}이에요.{" "}
+              고른 기간이 {days}일이라 <b className="text-moon">{won(product.price)}</b>이 결제돼요. 결제가 끝나면 바로 분석해서 보통 1~3분 안에 결과가
               나오고, 결과 재열람·이미지 저장·공유 링크는 분석일부터 {SERVICE_PERIOD.resultDays}일 동안 이용할 수 있어요.
             </p>
             <label className="mt-4 flex items-start gap-2 text-[13px] leading-[1.55]">
