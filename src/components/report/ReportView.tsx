@@ -121,12 +121,7 @@ export function ReportView({ saved, shared, actions }: Props) {
               <div className="flex flex-col gap-4 p-5 text-[15px] leading-[1.6]">
                 <p>{m.summary}</p>
                 <Phrases samples={phrasesOf(m.name)} />
-                {m.scenes.map((b, i) => (
-                  <StoryCard key={`scene-${i}`} label="명장면" block={b} />
-                ))}
-                {m.sections.map((b, i) => (
-                  <StoryCard key={`sec-${i}`} block={b} />
-                ))}
+                <MoreStories scenes={m.scenes} sections={m.sections} />
                 <Evidence quotes={m.quotes} />
                 <ObjectionSlot target={`member:${m.name}`} owner={m.name} />
                 <MemberCardSave member={m} color={color(m.name)} />
@@ -254,6 +249,35 @@ function Evidence({ quotes }: { quotes: Quote[] }) {
         <QuoteList quotes={quotes} />
       </div>
     </details>
+  );
+}
+
+/** 명장면·꼭지는 카드가 길어지지 않게 "더보기"를 눌러야 펼친다 */
+function MoreStories({ scenes, sections }: { scenes: StoryBlock[]; sections: StoryBlock[] }) {
+  const [open, setOpen] = useState(false);
+  const count = scenes.length + sections.length;
+  if (!count) return null;
+  return (
+    <>
+      {open && (
+        <>
+          {scenes.map((b, i) => (
+            <StoryCard key={`scene-${i}`} label="명장면" block={b} />
+          ))}
+          {sections.map((b, i) => (
+            <StoryCard key={`sec-${i}`} block={b} />
+          ))}
+        </>
+      )}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="h-11 rounded-[14px] border border-dusk-2 text-[14px] font-semibold text-haze"
+      >
+        {open ? "접기" : `명장면·이야기 ${count}개 더보기`}
+      </button>
+    </>
   );
 }
 
