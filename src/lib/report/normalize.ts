@@ -6,11 +6,23 @@ import type { Report } from "../llm/schema";
  */
 type LegacyMember = Partial<Report["members"][number]> & { change?: string; stress?: string; care?: string };
 
+/** 화면에서 따옴표를 씌우므로 AI가 붙인 겉 따옴표(" ' “ ‘ 「)는 벗긴다 */
+export function unquote(text: string): string {
+  let t = text.trim();
+  for (;;) {
+    const m = t.match(/^(["'“”‘’「『])([\s\S]*)["'“”‘’」』]$/);
+    // '흠' 장인 '흠'처럼 안에 같은 따옴표가 또 있으면 겉 따옴표가 아니다
+    if (!m || m[2].includes(m[1])) return t;
+    t = m[2].trim();
+  }
+}
+
 export function normalizeReport(report: Report): Report {
   return {
     ...report,
     members: report.members.map((raw) => {
-      const m = raw as LegacyMember & Report["members"][number];
+      const base = raw as LegacyMember & Report["members"][number];
+      const m = { ...base, archetype: unquote(base.archetype), oneLiner: unquote(base.oneLiner ?? "") };
       if (Array.isArray(m.sections) && Array.isArray(m.scenes)) return m;
       const legacy: [string, string | undefined][] = [
         ["변화", m.change],
@@ -20,7 +32,6 @@ export function normalizeReport(report: Report): Report {
       ];
       return {
         ...m,
-        oneLiner: m.oneLiner ?? "",
         scenes: m.scenes ?? [],
         sections: m.sections ?? legacy.filter(([, t]) => t).map(([title, text]) => ({ title, text: text!, quotes: [] })),
       };

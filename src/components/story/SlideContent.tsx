@@ -136,10 +136,20 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
             <Big>{peak}시</Big>
             <Line>방이 제일 시끄러운 시간</Line>
           </Hero>
-          <div className="flex h-24 items-end gap-[2px]" aria-hidden>
-            {stats.hours.map((v, h) => (
-              <span key={h} className="flex-1 rounded-t-[2px]" style={{ height: `${Math.max(4, (v / max) * 100)}%`, background: h === peak ? "#ffc53d" : `${ink}55` }} />
-            ))}
+          <div aria-hidden>
+            <div className="flex h-24 items-end gap-[2px]">
+              {stats.hours.map((v, h) => (
+                <span key={h} className="flex-1 rounded-t-[2px]" style={{ height: `${Math.max(4, (v / max) * 100)}%`, background: h === peak ? "#ffc53d" : `${ink}55` }} />
+              ))}
+            </div>
+            <div className="tabular mt-1.5 flex gap-[2px] text-[clamp(8px,2.2cqw,11px)] leading-none">
+              {stats.hours.map((_, h) => (
+                <span key={h} className={`flex-1 text-center ${h === peak ? "font-bold" : "opacity-60"}`} style={h === peak ? { color: "#ffc53d" } : undefined}>
+                  {h}
+                </span>
+              ))}
+            </div>
+            <p className="mt-1 text-right text-[11px] opacity-60">(시)</p>
           </div>
           {owl && owl.nightRatio > 0 && (
             <Line>
