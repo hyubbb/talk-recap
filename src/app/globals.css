@@ -62,8 +62,60 @@ body {
   animation: bubble-in 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* 스토리 막대가 아래에서(세로)·왼쪽에서(가로) 자라난다 */
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+.bar-grow {
+  transform-origin: bottom;
+  animation: bar-grow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes bar-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+.bar-grow-x {
+  transform-origin: left;
+  animation: bar-grow-x 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* 핑퐁 랠리 공 */
+@keyframes pingpong {
+  from {
+    left: 0;
+  }
+  to {
+    left: calc(100% - 1rem);
+  }
+}
+.pingpong {
+  animation: pingpong 650ms ease-in-out infinite alternate;
+}
+
+/* "입력 중…" 점 */
+@keyframes typing {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+.typing-dot {
+  animation: typing 1s infinite both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bubble-in {
+  .bubble-in,
+  .bar-grow,
+  .bar-grow-x,
+  .pingpong,
+  .typing-dot {
     animation: none;
   }
 }

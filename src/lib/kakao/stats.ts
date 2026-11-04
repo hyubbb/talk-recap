@@ -1,6 +1,7 @@
 import type { ChatMessage } from "./types";
 import type { MemberGroup } from "./members";
 import { authorIndex } from "./members";
+import { computeFun, type FunStats } from "./fun";
 
 const DAY = 86_400_000;
 const REPLY_WINDOW = 10 * 60_000; // 10분 안의 다음 발화자를 "답장"으로 본다
@@ -46,6 +47,8 @@ export interface RoomStats {
   /** mentions[a][b] = a가 b의 이름·별명을 부른 횟수 */
   mentions: Record<string, Record<string, number>>;
   hidden: HiddenRecords;
+  /** 웃음 유발·허공·랠리·원조·분위기 메이커 (이 기능 전에 만든 결과엔 없다) */
+  fun?: FunStats;
 }
 
 const MEDIA = new Set(["photo", "video", "emoticon", "file", "deleted"]);
@@ -158,6 +161,15 @@ export function computeStats(
   });
 
   const total = msgs.length;
+  const phraseCounts = new Map<string, Map<string, number>>();
+  for (const s of per.values()) {
+    for (const [t, c] of s._phr) {
+      let row = phraseCounts.get(t);
+      if (!row) phraseCounts.set(t, (row = new Map()));
+      row.set(s.id, c);
+    }
+  }
+  const fun = computeFun(msgs, (m) => idx.get(m.author)!, ids, phraseCounts);
   const members: MemberStats[] = [...per.values()].map((s) => {
     const textCount = s.messages - s.emoticons - s.photos;
     const { _len, _laugh, _days, _phr, ...rest } = s;
@@ -195,6 +207,7 @@ export function computeStats(
     replies,
     mentions,
     hidden,
+    fun,
   };
 }
 

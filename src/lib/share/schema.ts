@@ -27,6 +27,20 @@ const memberStats = z.object({
   catchphrases: z.array(z.object({ text: z.string().max(200), count: num })).max(50),
 });
 
+/** src/lib/kakao/fun.ts FunStats. 이 기능 전에 만든 결과엔 없다 */
+const mid = z.string().max(100);
+const funStats = z.object({
+  laughs: z.array(z.object({ memberId: mid, attempts: num, triggers: num, ratio: num })).max(100),
+  unanswered: z.array(z.object({ memberId: mid, turns: num, count: num, ratio: num })).max(100),
+  loneliest: z.object({ memberId: mid, ts: num, text: z.string().max(200), minutes: num }).nullable(),
+  rally: z.object({ a: mid, b: mid, turns: num, ts: num, minutes: num }).nullable(),
+  laughLength: z.array(z.object({ month: z.string().max(20), avg: num })).max(1200),
+  origins: z
+    .array(z.object({ text: z.string().max(200), spread: z.array(z.object({ memberId: mid, ts: num, count: num })).max(100) }))
+    .max(5),
+  mood: z.array(z.object({ memberId: mid, withAvg: num, withoutAvg: num, withDays: num, withoutDays: num })).max(100),
+});
+
 const roomStats = z.object({
   totalMessages: num,
   start: num,
@@ -44,6 +58,7 @@ const roomStats = z.object({
     repeatStreak: z.object({ memberId: z.string(), ts: num, text: z.string().max(500), count: num }).nullable(),
     topLastWord: z.object({ memberId: z.string(), count: num }).nullable(),
   }),
+  fun: funStats.optional(),
 });
 
 const s = (max: number) => z.string().max(max);

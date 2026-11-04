@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildSlides, inkOn, relatedWords, safePair } from "./slides";
+import { buildSlides, inkOn, relatedWords, replayScene, safePair, topResponders } from "./slides";
+import { quoteKey } from "../report/context";
 import { fakeReport } from "../testing/fakeReport";
 
 describe("buildSlides", () => {
@@ -7,10 +8,57 @@ describe("buildSlides", () => {
     const r = fakeReport(3);
     const s = buildSlides(r);
     const kinds = [...new Set(s.map((x) => x.kind))];
-    expect(kinds).toEqual(["opening", "ranking", "catchphrase", "hours", "hidden", "acts", "member", "pair", "mbti", "awards", "bag", "closing"]);
+    expect(kinds).toEqual([
+      "opening", "ranking", "catchphrase", "origin", "hours", "duty", "laugh", "lonely", "rally", "mood",
+      "hidden", "acts", "member", "pair", "mbti", "awards", "bag", "closing",
+    ]);
     expect(s.filter((x) => x.kind === "member")).toHaveLength(3);
     expect(new Set(s.map((x) => x.id)).size).toBe(s.length);
     for (const x of s) expect(x.title.length).toBeGreaterThan(0);
+  });
+
+  it("예전 결과(fun 없음)는 새 분석 장 없이 기존 순서 그대로", () => {
+    const r = fakeReport(3);
+    delete r.stats.fun;
+    const kinds = [...new Set(buildSlides(r).map((x) => x.kind))];
+    expect(kinds).toEqual(["opening", "ranking", "catchphrase", "hours", "duty", "hidden", "acts", "member", "pair", "mbti", "awards", "bag", "closing"]);
+  });
+
+  it("표본이 적거나 비율이 낮은 웃음·허공은 장을 만들지 않는다", () => {
+    const r = fakeReport(3);
+    r.stats.fun!.laughs = r.stats.fun!.laughs.map((l) => ({ ...l, attempts: 5 }));
+    r.stats.fun!.unanswered = r.stats.fun!.unanswered.map((u) => ({ ...u, count: 0 }));
+    r.stats.fun!.loneliest = null;
+    const kinds = buildSlides(r).map((x) => x.kind);
+    expect(kinds).not.toContain("laugh");
+    expect(kinds).not.toContain("lonely");
+  });
+
+  it("답장 기록이 있으면 '누가 누구 말을 받나', 자기 자신은 빼고 가장 많이 받은 사람", () => {
+    const r = fakeReport(3);
+    r.stats.replies = { m1: { m1: 9, m2: 3, m3: 7 }, m2: { m1: 0, m2: 0, m3: 0 }, m3: { m1: 2, m2: 0, m3: 0 } };
+    expect(topResponders(r.stats)).toEqual([
+      { from: "m1", to: "m3", count: 7 },
+      { from: "m3", to: "m1", count: 2 },
+    ]);
+    expect(buildSlides(r).some((x) => x.kind === "relations")).toBe(true);
+  });
+
+  it("앞뒤 대화가 있는 명장면이 있으면 리플레이 장", () => {
+    const r = fakeReport(2);
+    expect(replayScene(r)).toBeNull();
+    const q = r.report.members[1].scenes[0].quotes[0];
+    r.contexts = {
+      [quoteKey(q)]: {
+        focus: 1,
+        lines: [
+          { date: "7/9", time: "21:00", who: "도토리", text: "누가 내 김밥 먹었어" },
+          { date: "7/9", time: "21:01", who: q.who, text: q.text },
+        ],
+      },
+    };
+    expect(replayScene(r)?.member).toBe("고등어");
+    expect(buildSlides(r).some((x) => x.kind === "replay")).toBe(true);
   });
 
   it("가방 장은 내가 고른 멤버", () => {

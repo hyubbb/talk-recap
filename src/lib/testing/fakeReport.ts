@@ -33,6 +33,22 @@ export function fakeReport(count = 5, quotesEach = 6): SavedReport {
         repeatStreak: { memberId: "m3", ts: Date.UTC(2026, 7, 3), text: "네", count: 5 },
         topLastWord: { memberId: "m1", count: 80 },
       },
+      fun: {
+        laughs: names.map((_, i) => ({ memberId: `m${i + 1}`, attempts: 400, triggers: 180 - i * 30, ratio: (180 - i * 30) / 400 })),
+        unanswered: names.map((_, i) => ({ memberId: `m${i + 1}`, turns: 300, count: 30 + i * 25, ratio: (30 + i * 25) / 300 })),
+        loneliest: { memberId: names.length > 1 ? "m2" : "m1", ts: Date.UTC(2026, 8, 3, 21, 14), text: "이번 주 토요일 등산 갈 사람?", minutes: 312 },
+        rally: names.length > 1 ? { a: "m1", b: "m2", turns: 42, ts: Date.UTC(2026, 8, 12, 1, 3), minutes: 37 } : null,
+        laughLength: [
+          { month: "2026-07", avg: 2.4 },
+          { month: "2026-08", avg: 3.1 },
+          { month: "2026-09", avg: 4.2 },
+          { month: "2026-10", avg: 5.6 },
+        ],
+        origins: [
+          { text: "가보자고", spread: names.map((_, i) => ({ memberId: `m${i + 1}`, ts: Date.UTC(2026, 6, 21 + i * 9), count: 40 - i * 7 })) },
+        ],
+        mood: names.map((_, i) => ({ memberId: `m${i + 1}`, withAvg: 60 - i * 5, withoutAvg: 20 + i * 4, withDays: 70, withoutDays: 30 })),
+      },
     },
     report: {
       title: "도토리 마을 회관",

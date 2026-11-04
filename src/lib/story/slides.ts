@@ -1,11 +1,23 @@
 import type { SavedReport } from "../report/storage";
 import { isSensitive } from "../quiz/sensitive";
+import { bestMood, MIN_SAMPLE, type FunStats } from "../kakao/fun";
+import type { RoomStats } from "../kakao/stats";
+import type { StoryBlock } from "../llm/schema";
+import { quoteKey, type ContextBlock } from "../report/context";
 
 export type SlideKind =
   | "opening"
   | "ranking"
   | "catchphrase"
+  | "origin"
   | "hours"
+  | "duty"
+  | "laugh"
+  | "lonely"
+  | "rally"
+  | "mood"
+  | "relations"
+  | "replay"
   | "hidden"
   | "acts"
   | "member"
@@ -40,14 +52,23 @@ export function buildSlides(saved: SavedReport, me?: string | null): Slide[] {
   let c = 0;
   const next = () => colors[c++ % Math.max(1, colors.length)] ?? SPARK;
 
+  const fun = saved.stats.fun;
   const slides: Slide[] = [
     { id: "opening", kind: "opening", title: "오프닝", bg: NIGHT },
     { id: "ranking", kind: "ranking", title: "수다왕 랭킹", bg: SPARK },
     { id: "catchphrase", kind: "catchphrase", title: "말버릇 왕", bg: next() },
-    { id: "hours", kind: "hours", title: "누가 밤에 살아나나", bg: NIGHT },
-    { id: "hidden", kind: "hidden", title: "숨은 기록", bg: next() },
-    { id: "acts", kind: "acts", title: "줄거리", bg: SPARK },
   ];
+  if (fun && topOrigin(fun)) slides.push({ id: "origin", kind: "origin", title: "유행어 원조", bg: NIGHT });
+  slides.push({ id: "hours", kind: "hours", title: "누가 밤에 살아나나", bg: NIGHT });
+  if (saved.stats.members.length >= 2) slides.push({ id: "duty", kind: "duty", title: "여는 사람, 끄는 사람", bg: next() });
+  if (fun && laughRanking(fun).length) slides.push({ id: "laugh", kind: "laugh", title: "웃음 버튼", bg: SPARK });
+  if (fun && (lonelyRanking(fun).length || fun.loneliest)) slides.push({ id: "lonely", kind: "lonely", title: "허공에 외친 말", bg: NIGHT });
+  if (fun?.rally) slides.push({ id: "rally", kind: "rally", title: "핑퐁 랠리", bg: next() });
+  if (fun && bestMood(fun)) slides.push({ id: "mood", kind: "mood", title: "분위기 메이커", bg: SPARK });
+  if (topResponders(saved.stats).length) slides.push({ id: "relations", kind: "relations", title: "누가 누구 말을 받나", bg: NIGHT });
+  slides.push({ id: "hidden", kind: "hidden", title: "숨은 기록", bg: next() });
+  slides.push({ id: "acts", kind: "acts", title: "줄거리", bg: SPARK });
+  if (replayScene(saved)) slides.push({ id: "replay", kind: "replay", title: "명장면 다시 보기", bg: NIGHT });
   for (const m of report.members) {
     slides.push({ id: `member:${m.name}`, kind: "member", title: `${m.name}의 아키타입`, bg: colorOf(m.name), member: m.name });
   }
@@ -58,6 +79,48 @@ export function buildSlides(saved: SavedReport, me?: string | null): Slide[] {
   if (bagOwner) slides.push({ id: "bag", kind: "bag", title: `${bagOwner.name}의 가방`, bg: colorOf(bagOwner.name), member: bagOwner.name });
   slides.push({ id: "closing", kind: "closing", title: "총평", bg: NIGHT });
   return slides;
+}
+
+/** 웃음 유발 순위 (표본 충분하고 10% 이상인 사람만) */
+export function laughRanking(fun: FunStats) {
+  return fun.laughs.filter((l) => l.attempts >= MIN_SAMPLE && l.ratio >= 0.1).sort((a, b) => b.ratio - a.ratio);
+}
+
+/** 허공에 외친 비율 순위 */
+export function lonelyRanking(fun: FunStats) {
+  return fun.unanswered.filter((u) => u.turns >= MIN_SAMPLE && u.count > 0).sort((a, b) => b.ratio - a.ratio);
+}
+
+/** 원조가 가려지는 말버릇 (2명 이상 퍼진 것) */
+export function topOrigin(fun: FunStats) {
+  return fun.origins.find((o) => o.spread.length >= 2) ?? null;
+}
+
+/** 사람마다 그 사람 말을 제일 먼저(10분 안에) 받아주는 사람 */
+export function topResponders(stats: RoomStats) {
+  const out: { from: string; to: string; count: number }[] = [];
+  for (const m of stats.members) {
+    const row = stats.replies[m.id];
+    if (!row) continue;
+    let best: { to: string; count: number } | null = null;
+    for (const [to, count] of Object.entries(row)) if (to !== m.id && count > 0 && (!best || count > best.count)) best = { to, count };
+    if (best) out.push({ from: m.id, ...best });
+  }
+  return out;
+}
+
+/** 앞뒤 대화가 남아 있는 첫 명장면 (말풍선으로 다시 재생) */
+export function replayScene(saved: SavedReport): { member: string; block: StoryBlock; context: ContextBlock } | null {
+  for (const m of saved.report.members) {
+    for (const b of m.scenes) {
+      if (isSensitive(`${b.title} ${b.text}`)) continue;
+      for (const q of b.quotes) {
+        const context = saved.contexts?.[quoteKey(q)];
+        if (context && context.lines.length >= 2) return { member: m.name, block: b, context };
+      }
+    }
+  }
+  return null;
 }
 
 /** 스토리에 올릴 궁합 한 쌍. 민감 주제나 놀림 라벨은 리포트에만 둔다. */

@@ -4,53 +4,11 @@ import type { SavedReport } from "@/lib/report/storage";
 import { safePair, type Slide } from "@/lib/story/slides";
 import { isSensitive } from "@/lib/quiz/sensitive";
 import { ItemIcon } from "@/components/bag/PixelIcon";
+import { Big, Bubble, Count, Hero, Line, clean, clock, fmt, n } from "./parts";
+import { FunSlide } from "./FunSlides";
 
-const n = (v: number) => v.toLocaleString("ko-KR");
-const fmt = (ts: number) => {
-  const d = new Date(ts);
-  return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}`;
-};
-const clock = (ts: number) => {
-  const d = new Date(ts);
-  return `${d.getUTCHours()}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
-};
 /** 예시로 보여도 되는 문장 (민감 주제·빈 글자 제외) */
 const safeExample = (t: string) => /[\p{L}\p{N}]/u.test(t) && !isSensitive(t);
-const clean = (s: string) => s.replace(/\(목업\)\s*/g, "").trim();
-
-function Big({ children }: { children: React.ReactNode }) {
-  return <p className="tabular text-[clamp(48px,16cqw,84px)] leading-[1.02] font-black tracking-[-0.04em]">{children}</p>;
-}
-/** 대화에서 꺼낸 말한마디. 카톡 말풍선 모양 (right = 보낸 메시지처럼 오른쪽) */
-function Bubble({ text, ink, right, faint }: { text: string; ink: string; right?: boolean; faint?: boolean }) {
-  return (
-    <span
-      className={`max-w-[80%] truncate px-3.5 py-1.5 text-[15px] font-semibold ${right ? "self-end rounded-[18px] rounded-br-[4px]" : "self-start rounded-[18px] rounded-bl-[4px]"}`}
-      style={{ background: `${ink}${faint ? "14" : "22"}` }}
-    >
-      {text}
-    </span>
-  );
-}
-
-/** 가운데 제목. 관련 말은 제목 아래 오른쪽에 보낸 메시지처럼 쌓는다 */
-function Hero({ words, ink, children }: { words: string[]; ink: string; children: React.ReactNode }) {
-  return (
-    <div className="my-auto flex flex-col items-center gap-6 py-6 text-center">
-      <div className="flex flex-col items-center">{children}</div>
-      {words.length > 0 && (
-        <div className="flex w-full flex-col items-end gap-1.5" aria-hidden>
-          {words.map((w) => (
-            <Bubble key={w} text={w} ink={ink} right />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-function Line({ children }: { children: React.ReactNode }) {
-  return <p className="mt-3 text-[17px] leading-[1.5] font-semibold">{children}</p>;
-}
 
 export interface SlideActions {
   onReport: () => void;
@@ -65,6 +23,15 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
   const ranked = [...stats.members].sort((a, b) => b.messages - a.messages);
 
   switch (slide.kind) {
+    case "origin":
+    case "duty":
+    case "laugh":
+    case "lonely":
+    case "rally":
+    case "mood":
+    case "relations":
+    case "replay":
+      return <FunSlide slide={slide} saved={saved} ink={ink} />;
     case "opening":
       return (
         <>
@@ -75,8 +42,12 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
             <p className="text-[clamp(30px,10cqw,44px)] leading-[1.15] font-black tracking-[-0.03em]">{report.title}</p>
           </Hero>
           <div className="text-center">
-            <Big>{n(stats.days)}일</Big>
-            <Line>메시지 {n(stats.totalMessages)}개를 같이 보냈어요</Line>
+            <Big>
+              <Count to={stats.days} />일
+            </Big>
+            <Line>
+              메시지 <Count to={stats.totalMessages} ms={1400} />개를 같이 보냈어요
+            </Line>
           </div>
         </>
       );
@@ -87,7 +58,9 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
           <p className="font-pixel text-[15px]">수다왕</p>
           <Hero words={words} ink={ink}>
             <p className="text-[28px] font-extrabold">{top ? nameOf(top.id) : ""}</p>
-            <Big>{top ? n(top.messages) : 0}개</Big>
+            <Big>
+              <Count to={top ? top.messages : 0} />개
+            </Big>
             <Line>{top ? `혼자 전체의 ${Math.round(top.share * 100)}%를 말했어요` : ""}</Line>
           </Hero>
           <ol className="flex flex-col gap-2">
@@ -114,7 +87,9 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
             {best ? (
               <>
                 <p className="text-[28px] font-extrabold">&lsquo;{best.c.text.trim()}&rsquo;</p>
-                <Big>{n(best.c.count)}번</Big>
+                <Big>
+                  <Count to={best.c.count} />번
+                </Big>
                 <Line>{nameOf(best.m.id)}의 입버릇이에요</Line>
               </>
             ) : (
@@ -139,7 +114,11 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
           <div aria-hidden>
             <div className="flex h-24 items-end gap-[2px]">
               {stats.hours.map((v, h) => (
-                <span key={h} className="flex-1 rounded-t-[2px]" style={{ height: `${Math.max(4, (v / max) * 100)}%`, background: h === peak ? "#ffc53d" : `${ink}55` }} />
+                <span
+                  key={h}
+                  className="bar-grow flex-1 rounded-t-[2px]"
+                  style={{ height: `${Math.max(4, (v / max) * 100)}%`, background: h === peak ? "#ffc53d" : `${ink}55`, animationDelay: `${200 + h * 35}ms` }}
+                />
               ))}
             </div>
             <div className="tabular mt-1.5 flex gap-[2px] text-[clamp(8px,2.2cqw,11px)] leading-none">
@@ -254,7 +233,9 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
             <p className="text-[26px] font-extrabold">
               {p.a} × {p.b}
             </p>
-            <Big>{p.score}점</Big>
+            <Big>
+              <Count to={p.score} />점
+            </Big>
             <Line>{p.label}</Line>
           </Hero>
         </>
