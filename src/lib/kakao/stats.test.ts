@@ -48,6 +48,16 @@ describe("members + stats", () => {
     expect(stats.replies[ga][ra]).toBe(1);
   });
 
+  it("부르면 출동은 언급과 같은 호칭으로 센다, 잔디는 날짜별", () => {
+    const ga = groups.find((x) => x.names.includes("가나다"))!.id;
+    expect(stats.records?.summons.find((s) => s.memberId === ga)).toEqual({ memberId: ga, calls: 1, median: 1 });
+    expect(stats.records?.daily).toEqual([
+      { date: "2026-07-19", count: 5 },
+      { date: "2026-07-20", count: 6 },
+    ]);
+    expect(stats.records?.streak?.days).toBe(2);
+  });
+
   it("숨은 기록: 연속 반복, 새벽 독백", () => {
     expect(stats.hidden.repeatStreak?.count).toBe(3);
     expect(stats.hidden.lateNightMonologue?.count).toBe(5);

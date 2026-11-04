@@ -41,6 +41,17 @@ const funStats = z.object({
   mood: z.array(z.object({ memberId: mid, withAvg: num, withoutAvg: num, withDays: num, withoutDays: num })).max(100),
 });
 
+/** src/lib/kakao/records.ts RecordStats. 이 기능 전에 만든 결과엔 없다 */
+const recordStats = z.object({
+  ghosts: z.array(z.object({ memberId: mid, days: num, from: num, to: num, missed: num, text: z.string().max(200) })).max(100),
+  summons: z.array(z.object({ memberId: mid, calls: num, median: num })).max(100),
+  jinx: z.object({ a: mid, b: mid, count: num, text: z.string().max(200) }).nullable(),
+  workHours: z.array(z.object({ memberId: mid, messages: num, work: num })).max(100),
+  deleted: z.array(z.object({ memberId: mid, count: num })).max(100),
+  daily: z.array(z.object({ date: z.string().max(20), count: num })).max(400),
+  streak: z.object({ days: num, from: z.string().max(20), to: z.string().max(20) }).nullable(),
+});
+
 const roomStats = z.object({
   totalMessages: num,
   start: num,
@@ -59,6 +70,7 @@ const roomStats = z.object({
     topLastWord: z.object({ memberId: z.string(), count: num }).nullable(),
   }),
   fun: funStats.optional(),
+  records: recordStats.optional(),
 });
 
 const s = (max: number) => z.string().max(max);

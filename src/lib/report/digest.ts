@@ -1,5 +1,6 @@
 import type { RoomStats } from "@/lib/kakao/stats";
 import { funFacts } from "@/lib/kakao/fun";
+import { recordFacts } from "@/lib/kakao/records";
 
 const fmt = (ts: number) => {
   const d = new Date(ts);
@@ -42,7 +43,7 @@ export function statsDigest(stats: RoomStats, nameOf: (id: string) => string): s
   const h = stats.hidden;
   if (h.repeatStreak) lines.push(`같은 말 연속 최고: ${nameOf(h.repeatStreak.memberId)} ${h.repeatStreak.count}번`);
   if (h.longestMessage) lines.push(`가장 긴 메시지: ${nameOf(h.longestMessage.memberId)} ${h.longestMessage.length}자`);
-  const fun = funFacts(stats.fun, nameOf).map((f) => f.text);
+  const fun = [...funFacts(stats.fun, nameOf), ...recordFacts(stats.records, stats.replies, nameOf)].map((f) => f.text);
   if (fun.length) lines.push(`코드로 센 재밌는 기록 (어워드·한줄평에 숫자 그대로 써도 됨): ${fun.join(" / ")}`);
   return lines.join("\n");
 }

@@ -29,10 +29,10 @@ const RALLY_GAP = 5 * 60_000;
 /** 허공 기록은 하루 넘게 비는 경우(방이 잠든 것)를 빼고 본다 */
 const QUIET_CAP = 24 * 60 * 60_000;
 /** 누구나 쓰는 대답은 원조를 따지는 게 의미가 없어서 뺀다 */
-const COMMON = new Set(["네", "넵", "넹", "예", "응", "웅", "ㅇㅇ", "ㅇㅋ", "ㄴㄴ", "ㄱㄱ", "아", "오", "어", "음", "헐", "ok", "ㅇ"]);
+export const COMMON = new Set(["네", "넵", "넹", "예", "응", "웅", "ㅇㅇ", "ㅇㅋ", "ㄴㄴ", "ㄱㄱ", "아", "오", "어", "음", "헐", "ok", "ㅇ"]);
 
 const isLaugh = (t: string) => /ㅋㅋ|ㅎㅎ/.test(t);
-const laughOnly = (t: string) => /^[ㅋㅎㄱㄲ\s.!~]+$/.test(t);
+export const laughOnly = (t: string) => /^[ㅋㅎㄱㄲ\s.!~]+$/.test(t);
 const dateKey = (ts: number) => new Date(ts).toISOString().slice(0, 10);
 
 export function computeFun(

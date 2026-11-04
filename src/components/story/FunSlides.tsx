@@ -3,16 +3,18 @@
 import { useEffect, useState } from "react";
 import type { SavedReport } from "@/lib/report/storage";
 import { bestMood, laughRanking, lonelyRanking } from "@/lib/kakao/fun";
+import { ghostRanking, summonRanking, waitLabel } from "@/lib/kakao/records";
 import { replayScene, topOrigin, topResponders, type Slide } from "@/lib/story/slides";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { Big, Count, Hero, Line, clock, delay, md, n } from "./parts";
 
 const SPARK = "#ffc53d";
 
-/** 코드로 센 분석 장(유행어 원조·여는/끄는 사람·웃음 버튼·허공·랠리·분위기 메이커·답장 관계·명장면 다시 보기) */
+/** 코드로 센 분석 장(유행어 원조·여는/끄는 사람·웃음 버튼·허공·잠수·랠리·텔레파시·분위기 메이커·답장 관계·부르면 출동·명장면 다시 보기) */
 export function FunSlide({ slide, saved, ink }: { slide: Slide; saved: SavedReport; ink: string }) {
   const { stats, members } = saved;
   const fun = stats.fun;
+  const rec = stats.records;
   const nameOf = (id: string) => members.find((m) => m.id === id)?.name ?? "누군가";
   const colorOf = (id: string) => members.find((m) => m.id === id)?.color ?? SPARK;
   const pct = (r: number) => Math.round(r * 100);
@@ -238,6 +240,85 @@ export function FunSlide({ slide, saved, ink }: { slide: Slide; saved: SavedRepo
             ))}
           </ul>
           <p className="mt-3 text-[12px] opacity-70">말이 끝나고 10분 안에 바로 이어 말한 횟수예요</p>
+        </>
+      );
+    }
+    case "ghost": {
+      const g = rec ? ghostRanking(rec)[0] : undefined;
+      if (!g) return null;
+      return (
+        <>
+          <p className="font-pixel text-[15px]">잠수 기록</p>
+          <Hero ink={ink}>
+            <p className="text-[28px] font-extrabold">{nameOf(g.memberId)}</p>
+            <Big>
+              <Count to={g.days} />일
+            </Big>
+            <Line>
+              {md(g.from)}부터 {md(g.to)}까지 조용했고, 그동안 메시지 {n(g.missed)}개가 쌓였어요
+            </Line>
+          </Hero>
+          {g.text && (
+            <div className="flex flex-col gap-2">
+              <p className="text-[13px] font-semibold opacity-75">돌아와서 친 첫마디</p>
+              <span className="bubble-in max-w-[85%] self-start rounded-[18px] rounded-bl-[4px] px-3.5 py-2 text-[16px] font-semibold" style={{ background: `${ink}22`, ...delay(0, 0, 700) }}>
+                {g.text}
+              </span>
+            </div>
+          )}
+        </>
+      );
+    }
+    case "jinx": {
+      const j = rec?.jinx;
+      if (!j) return null;
+      return (
+        <>
+          <p className="font-pixel text-[15px]">텔레파시</p>
+          <Hero ink={ink}>
+            <p className="text-[26px] font-extrabold">
+              {nameOf(j.a)} ↔ {nameOf(j.b)}
+            </p>
+            <Big>
+              <Count to={j.count} />번
+            </Big>
+            <Line>1분 안에 똑같은 말을 쳤어요</Line>
+          </Hero>
+          {j.text && (
+            <div className="flex flex-col gap-2" aria-hidden>
+              <span className="bubble-in max-w-[85%] self-start rounded-[18px] rounded-bl-[4px] px-3.5 py-2 text-[16px] font-semibold" style={{ background: `${ink}22`, ...delay(0, 0, 400) }}>
+                {j.text}
+              </span>
+              <span className="bubble-in max-w-[85%] self-end rounded-[18px] rounded-br-[4px] px-3.5 py-2 text-[16px] font-semibold" style={{ background: `${ink}22`, ...delay(0, 0, 900) }}>
+                {j.text}
+              </span>
+            </div>
+          )}
+        </>
+      );
+    }
+    case "summon": {
+      const list = rec ? summonRanking(rec) : [];
+      const top = list[0];
+      if (!top) return null;
+      return (
+        <>
+          <p className="font-pixel text-[15px]">부르면 출동</p>
+          <Hero ink={ink}>
+            <p className="text-[28px] font-extrabold">{nameOf(top.memberId)}</p>
+            <Big>{waitLabel(top.median)}</Big>
+            <Line>이름이 불리면 보통 이만큼 만에 나타나요</Line>
+          </Hero>
+          <ul className="flex flex-col gap-2">
+            {list.slice(0, 5).map((s, i) => (
+              <li key={s.memberId} className="bubble-in flex items-center gap-3 text-[15px]" style={delay(i, 180)}>
+                <span className="size-2.5 shrink-0 rounded-full" style={{ background: colorOf(s.memberId) }} />
+                <span className="flex-1 truncate font-semibold">{nameOf(s.memberId)}</span>
+                <span className="tabular">{waitLabel(s.median)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[12px] opacity-70">이름·별명이 불린 뒤 6시간 안에 말한 때의 중간값이에요</p>
         </>
       );
     }

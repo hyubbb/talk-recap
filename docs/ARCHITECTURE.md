@@ -33,7 +33,7 @@
 
 | 경로 | 내용 |
 | --- | --- |
-| `src/lib/kakao/` | 파서(`parse.ts`), 멤버 묶기(`members.ts`), 통계(`stats.ts`), 웃음 유발·허공·랠리·유행어 원조·분위기 메이커(`fun.ts`, AI 비용 없이 코드로 셈), 구간 분할(`chunk.ts`), 민감정보 마스킹(`privacy.ts`). 순수 함수, 테스트 있음 |
+| `src/lib/kakao/` | 파서(`parse.ts`), 멤버 묶기(`members.ts`), 통계(`stats.ts`), 웃음 유발·허공·랠리·유행어 원조·분위기 메이커(`fun.ts`, AI 비용 없이 코드로 셈), 잠수·부르면 출동·텔레파시·근무 중 딴짓·지운 메시지·잔디 달력(`records.ts`, 같은 방식), 구간 분할(`chunk.ts`), 민감정보 마스킹(`privacy.ts`). 순수 함수, 테스트 있음 |
 | `src/workers/` | Web Worker와 메시지 프로토콜(`protocol.ts`) |
 | `src/lib/llm/` | 출력 스키마(`schema.ts`, Zod → OpenAI strict JSON Schema), 프롬프트, OpenAI 호출(`provider.ts`, server-only), mock, 인용 검증 |
 | `src/lib/report/` | 종합 단계용 통계 요약(`digest.ts`), 결과 저장(`storage.ts`, 지금은 localStorage) |

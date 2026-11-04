@@ -6,8 +6,9 @@ import type { Quote, StoryBlock } from "@/lib/llm/schema";
 import type { PhraseSample } from "@/lib/report/context";
 import { isSensitive } from "@/lib/quiz/sensitive";
 import { funFacts } from "@/lib/kakao/fun";
-import { FunFacts } from "./FunFacts";
-import { HoursMap, LaughChart, OriginSpread, RecordTiles, Responders, dutyTiles, hiddenTiles } from "./RoomRecords";
+import { recordFacts } from "@/lib/kakao/records";
+import { TileGrid, factTiles } from "./FunFacts";
+import { Calendar, HoursMap, LaughChart, OriginSpread, RecordTiles, Responders, dutyTiles, hiddenTiles } from "./RoomRecords";
 import { topOrigin, topResponders } from "@/lib/story/slides";
 import { ContextsProvider, ContextView, QuoteList } from "./Quotes";
 import { initialOf } from "@/lib/ui/colors";
@@ -45,7 +46,7 @@ export function ReportView({ saved, shared, actions }: Props) {
   const idOf = new Map(members.map((m) => [m.name, m.id]));
   const memberName = (id: string) => members.find((m) => m.id === id)?.name ?? "누군가";
   const memberColor = (id: string) => members.find((m) => m.id === id)?.color ?? "var(--color-haze)";
-  const facts = funFacts(stats.fun, memberName);
+  const tiles = factTiles(funFacts(stats.fun, memberName), recordFacts(stats.records, stats.replies, memberName));
   const hidden = hiddenTiles(stats, stats.fun);
   const hasOrigin = !!stats.fun && !!topOrigin(stats.fun);
   const hasLaughChart = (stats.fun?.laughLength.length ?? 0) >= 2;
@@ -99,10 +100,10 @@ export function ReportView({ saved, shared, actions }: Props) {
 
       {actions}
 
-      {(facts.length > 0 || hasOrigin || hasLaughChart) && (
+      {(tiles.length > 0 || hasOrigin || hasLaughChart) && (
         <Section title="숫자로 본 우리 방">
           <div className="flex flex-col gap-2.5">
-            <FunFacts facts={facts} nameOf={memberName} colorOf={memberColor} />
+            {tiles.length > 0 && <TileGrid tiles={tiles} nameOf={memberName} colorOf={memberColor} />}
             {stats.fun && <OriginSpread fun={stats.fun} nameOf={memberName} colorOf={memberColor} />}
             {stats.fun && <LaughChart fun={stats.fun} />}
           </div>
@@ -177,8 +178,9 @@ export function ReportView({ saved, shared, actions }: Props) {
         </Section>
       )}
 
-      <Section title="하루 시간표">
+      <Section title="언제 떠드나">
         <div className="flex flex-col gap-2.5">
+          {stats.records && <Calendar records={stats.records} busiest={stats.busiestDay} />}
           <HoursMap stats={stats} nameOf={memberName} colorOf={memberColor} />
           <RecordTiles tiles={dutyTiles(stats)} nameOf={memberName} colorOf={memberColor} />
         </div>

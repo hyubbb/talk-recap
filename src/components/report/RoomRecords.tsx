@@ -5,7 +5,8 @@ import type { FunStats } from "@/lib/kakao/fun";
 import { topOrigin, topResponders } from "@/lib/story/slides";
 import { isSensitive } from "@/lib/quiz/sensitive";
 import { clock, md, n } from "@/components/story/parts";
-import { TileGrid, type Tile } from "./FunFacts";
+import { QuoteBubble, TileGrid, type Tile } from "./FunFacts";
+import type { RecordStats } from "@/lib/kakao/records";
 
 /**
  * 결과 페이지의 코드로 센 기록 (스토리에서만 보이던 숫자를 다시 볼 수 있게).
@@ -18,14 +19,6 @@ interface Who {
 
 /** 예시로 보여도 되는 문장 (민감 주제·빈 글자 제외) */
 const safeExample = (t: string) => /[\p{L}\p{N}]/u.test(t) && !isSensitive(t);
-
-function Bubble({ text }: { text: string }) {
-  return (
-    <span className="mt-3 max-w-full self-start truncate rounded-[18px] rounded-bl-[4px] bg-dusk-2 px-3.5 py-1.5 text-[14px] font-semibold">
-      {text}
-    </span>
-  );
-}
 
 function Dot({ color }: { color: string }) {
   return <span className="size-2.5 shrink-0 rounded-full" style={{ background: color }} />;
@@ -145,7 +138,7 @@ export function hiddenTiles(stats: RoomStats, fun: FunStats | undefined): Tile[]
     out.push({
       key: "longest", label: "가장 긴 메시지", value: `${n(h.longestMessage.length)}자`, caption: `${md(h.longestMessage.ts)}에 보낸 한 통`,
       who: [h.longestMessage.memberId], wide: true,
-      extra: safeExample(preview) ? <Bubble text={`${preview}…`} /> : undefined,
+      extra: safeExample(preview) ? <QuoteBubble text={`${preview}…`} /> : undefined,
     });
   }
   if (h.lateNightMonologue) {
@@ -158,7 +151,7 @@ export function hiddenTiles(stats: RoomStats, fun: FunStats | undefined): Tile[]
     const r = h.repeatStreak;
     out.push({
       key: "repeat", label: "같은 말 연타", value: `${n(r.count)}연속`, caption: "같은 말을 쉬지 않고 이어 보냈어요", who: [r.memberId],
-      extra: safeExample(r.text) ? <Bubble text={r.text.trim()} /> : undefined,
+      extra: safeExample(r.text) ? <QuoteBubble text={r.text.trim()} /> : undefined,
     });
   }
   if (fun?.loneliest) {
@@ -166,7 +159,7 @@ export function hiddenTiles(stats: RoomStats, fun: FunStats | undefined): Tile[]
     const hours = q.minutes >= 120 ? `${Math.floor(q.minutes / 60)}시간` : `${n(q.minutes)}분`;
     out.push({
       key: "loneliest", label: "가장 오래 답이 없던 질문", value: hours, caption: `${md(q.ts)} ${clock(q.ts)}에 물어봤어요`, who: [q.memberId], wide: true,
-      extra: safeExample(q.text) ? <Bubble text={q.text} /> : undefined,
+      extra: safeExample(q.text) ? <QuoteBubble text={q.text} /> : undefined,
     });
   }
   return out;
@@ -227,6 +220,77 @@ export function LaughChart({ fun }: { fun: FunStats }) {
         <span>{shown[0].month.replace("-", ".")}</span>
         <span>{shown[shown.length - 1].month.replace("-", ".")}</span>
       </div>
+    </div>
+  );
+}
+
+const DAY = 86_400_000;
+const dayMs = (date: string) => Date.parse(`${date}T00:00:00Z`);
+const dot = (date: string) => date.slice(2).replaceAll("-", ".");
+
+/** 잔디 달력: 최근 53주, 세로는 일~토. 진하기는 대화한 날들 안에서 4단계 */
+export function Calendar({ records, busiest }: { records: RecordStats; busiest: RoomStats["busiestDay"] }) {
+  const { daily, streak } = records;
+  if (daily.length < 2) return null;
+  const counts = new Map(daily.map((d) => [d.date, d.count]));
+  const end = dayMs(daily[daily.length - 1].date);
+  const first = dayMs(daily[0].date);
+  const start = first - new Date(first).getUTCDay() * DAY; // 그 주 일요일부터
+  const sorted = daily.map((d) => d.count).sort((a, b) => a - b);
+  const q = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))];
+  const [q1, q2, q3] = [q(0.25), q(0.5), q(0.75)];
+  const level = (c: number) => (c <= 0 ? 0 : c <= q1 ? 1 : c <= q2 ? 2 : c <= q3 ? 3 : 4);
+  const OPACITY = [0, 0.3, 0.55, 0.8, 1];
+  const cells: { date: string; count: number }[] = [];
+  for (let t = start; t <= end; t += DAY) {
+    const date = new Date(t).toISOString().slice(0, 10);
+    cells.push({ date, count: t < first ? -1 : counts.get(date) ?? 0 });
+  }
+  const weeks = Math.ceil(cells.length / 7);
+  const active = daily.length;
+  const total = Math.round((end - first) / DAY) + 1;
+  return (
+    <div className="rounded-[16px] bg-dusk p-4">
+      <p className="font-pixel text-[12px] text-spark">최장 연속 대화</p>
+      <p className="tabular mt-2 text-[30px] leading-[1.1] font-black tracking-[-0.03em]">{streak ? `${n(streak.days)}일` : "-"}</p>
+      {streak && streak.days > 1 && (
+        <p className="tabular mt-1 text-[13px] text-haze">
+          {dot(streak.from)} ~ {dot(streak.to)} 하루도 안 빼고 떠들었어요
+        </p>
+      )}
+      <div
+        className="mt-4 grid grid-flow-col grid-rows-7 gap-[3px]"
+        style={{ gridAutoColumns: "minmax(0, 1fr)", maxWidth: weeks < 20 ? `${weeks * 26}px` : undefined }}
+        role="img"
+        aria-label={`최근 ${n(total)}일 중 ${n(active)}일 대화했어요`}
+      >
+        {cells.map((c) => (
+          <span
+            key={c.date}
+            title={c.count >= 0 ? `${dot(c.date)} · ${n(c.count)}개` : undefined}
+            className={`aspect-square rounded-[3px] ${c.date === busiest?.date ? "ring-2 ring-moon" : ""}`}
+            style={
+              c.count < 0
+                ? { background: "transparent" }
+                : level(c.count) === 0
+                  ? { background: "var(--color-dusk-2)" }
+                  : { background: "var(--color-spark)", opacity: OPACITY[level(c.count)] }
+            }
+          />
+        ))}
+      </div>
+      <div className="tabular mt-1.5 flex justify-between text-[11px] text-haze" aria-hidden style={{ maxWidth: weeks < 20 ? `${weeks * 26}px` : undefined }}>
+        <span>{dot(daily[0].date)}</span>
+        <span>{dot(daily[daily.length - 1].date)}</span>
+      </div>
+      <p className="mt-3 text-[13px] text-haze">
+        {n(total)}일 중 <b className="text-moon">{n(active)}일</b> 대화했어요
+        {busiest && counts.has(busiest.date) && (
+          <>
+            {" · "}테두리는 가장 시끄러운 날({dot(busiest.date)}, {n(busiest.count)}개)
+          </>
+        )}
+      </p>
     </div>
   );
 }

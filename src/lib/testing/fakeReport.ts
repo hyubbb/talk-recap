@@ -49,6 +49,15 @@ export function fakeReport(count = 5, quotesEach = 6): SavedReport {
         ],
         mood: names.map((_, i) => ({ memberId: `m${i + 1}`, withAvg: 60 - i * 5, withoutAvg: 20 + i * 4, withDays: 70, withoutDays: 30 })),
       },
+      records: {
+        ghosts: names.map((_, i) => ({ memberId: `m${i + 1}`, days: 3 + i * 4, from: Date.UTC(2026, 7, 1), to: Date.UTC(2026, 7, 4 + i * 4), missed: 120 + i * 40, text: "다들 살아있냐" })),
+        summons: names.map((_, i) => ({ memberId: `m${i + 1}`, calls: 12, median: 2 + i * 9 })),
+        jinx: names.length > 1 ? { a: "m1", b: "m2", count: 7, text: "치킨각" } : null,
+        workHours: names.map((_, i) => ({ memberId: `m${i + 1}`, messages: 1000 - i * 100, work: 500 - i * 120 })),
+        deleted: names.map((_, i) => ({ memberId: `m${i + 1}`, count: i * 2 })),
+        daily: Array.from({ length: 100 }, (_, d) => ({ date: new Date(Date.UTC(2026, 6, 19) + d * 86_400_000).toISOString().slice(0, 10), count: 20 + ((d * 37) % 60) })),
+        streak: { days: 41, from: "2026-08-02", to: "2026-09-11" },
+      },
     },
     report: {
       title: "도토리 마을 회관",

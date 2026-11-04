@@ -2,6 +2,7 @@ import type { ChatMessage } from "./types";
 import type { MemberGroup } from "./members";
 import { authorIndex } from "./members";
 import { computeFun, type FunStats } from "./fun";
+import { computeRecords, type RecordStats } from "./records";
 
 const DAY = 86_400_000;
 const REPLY_WINDOW = 10 * 60_000; // 10분 안의 다음 발화자를 "답장"으로 본다
@@ -49,6 +50,8 @@ export interface RoomStats {
   hidden: HiddenRecords;
   /** 웃음 유발·허공·랠리·원조·분위기 메이커 (이 기능 전에 만든 결과엔 없다) */
   fun?: FunStats;
+  /** 잠수·부르면 출동·텔레파시·근무 중 딕짓·지운 메시지·잔디 달력 (이 기능 전에 만든 결과엔 없다) */
+  records?: RecordStats;
 }
 
 const MEDIA = new Set(["photo", "video", "emoticon", "file", "deleted"]);
@@ -89,6 +92,12 @@ export function computeStats(
   const replies: RoomStats["replies"] = Object.fromEntries(ids.map((a) => [a, Object.fromEntries(ids.map((b) => [b, 0]))]));
   const mentions: RoomStats["mentions"] = Object.fromEntries(ids.map((a) => [a, Object.fromEntries(ids.map((b) => [b, 0]))]));
   const calls = people.map((g) => ({ id: g.id, words: callNames(g, aliases[g.id]) }));
+  /** 이 말에서 이름·별명이 불린 다른 멤버 */
+  const called = (t: string, author: string) => {
+    const out: string[] = [];
+    for (const c of calls) if (c.id !== author && c.words.some((w) => t.includes(w))) out.push(c.id);
+    return out;
+  };
 
   const byMonth = new Map<string, number>();
   const byDay = new Map<string, number>();
@@ -125,9 +134,7 @@ export function computeStats(
       s._laugh += (t.match(/ㅋ/g) ?? []).length;
       if (/[?？]\s*$/.test(t)) s.questions++;
       if (t.length > 0 && t.length <= 10 && m.kind === "text") s._phr.set(t, (s._phr.get(t) ?? 0) + 1);
-      for (const c of calls) {
-        if (c.id !== id && c.words.some((w) => t.includes(w))) mentions[id][c.id]++;
-      }
+      for (const c of called(t, id)) mentions[id][c]++;
       if (m.kind === "text" && (!hidden.longestMessage || t.length > hidden.longestMessage.length)) {
         hidden.longestMessage = { memberId: id, ts: m.ts, length: t.length, preview: t.slice(0, 40) };
       }
@@ -170,6 +177,7 @@ export function computeStats(
     }
   }
   const fun = computeFun(msgs, (m) => idx.get(m.author)!, ids, phraseCounts);
+  const records = computeRecords(msgs, (m) => idx.get(m.author)!, ids, called);
   const members: MemberStats[] = [...per.values()].map((s) => {
     const textCount = s.messages - s.emoticons - s.photos;
     const { _len, _laugh, _days, _phr, ...rest } = s;
@@ -208,6 +216,7 @@ export function computeStats(
     mentions,
     hidden,
     fun,
+    records,
   };
 }
 

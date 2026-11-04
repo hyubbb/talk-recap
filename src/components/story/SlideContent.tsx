@@ -30,6 +30,9 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
     case "rally":
     case "mood":
     case "relations":
+    case "ghost":
+    case "jinx":
+    case "summon":
     case "replay":
       return <FunSlide slide={slide} saved={saved} ink={ink} />;
     case "opening":

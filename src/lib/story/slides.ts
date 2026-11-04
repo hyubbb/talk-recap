@@ -2,6 +2,7 @@ import type { SavedReport } from "../report/storage";
 import { isSensitive } from "../quiz/sensitive";
 import { bestMood, laughRanking, lonelyRanking, type FunStats } from "../kakao/fun";
 import type { RoomStats } from "../kakao/stats";
+import { ghostRanking, summonRanking } from "../kakao/records";
 import type { StoryBlock } from "../llm/schema";
 import { quoteKey, type ContextBlock } from "../report/context";
 
@@ -14,9 +15,12 @@ export type SlideKind =
   | "duty"
   | "laugh"
   | "lonely"
+  | "ghost"
   | "rally"
+  | "jinx"
   | "mood"
   | "relations"
+  | "summon"
   | "replay"
   | "hidden"
   | "acts"
@@ -53,6 +57,7 @@ export function buildSlides(saved: SavedReport, me?: string | null): Slide[] {
   const next = () => colors[c++ % Math.max(1, colors.length)] ?? SPARK;
 
   const fun = saved.stats.fun;
+  const rec = saved.stats.records;
   const slides: Slide[] = [
     { id: "opening", kind: "opening", title: "오프닝", bg: NIGHT },
     { id: "ranking", kind: "ranking", title: "수다왕 랭킹", bg: SPARK },
@@ -63,9 +68,12 @@ export function buildSlides(saved: SavedReport, me?: string | null): Slide[] {
   if (saved.stats.members.length >= 2) slides.push({ id: "duty", kind: "duty", title: "여는 사람, 끄는 사람", bg: next() });
   if (fun && laughRanking(fun).length) slides.push({ id: "laugh", kind: "laugh", title: "웃음 버튼", bg: SPARK });
   if (fun && (lonelyRanking(fun).length || fun.loneliest)) slides.push({ id: "lonely", kind: "lonely", title: "허공에 외친 말", bg: NIGHT });
+  if (rec && ghostRanking(rec).length) slides.push({ id: "ghost", kind: "ghost", title: "잠수 기록", bg: NIGHT });
   if (fun?.rally) slides.push({ id: "rally", kind: "rally", title: "핑퐁 랠리", bg: next() });
+  if (rec?.jinx) slides.push({ id: "jinx", kind: "jinx", title: "텔레파시", bg: SPARK });
   if (fun && bestMood(fun)) slides.push({ id: "mood", kind: "mood", title: "분위기 메이커", bg: SPARK });
   if (topResponders(saved.stats).length) slides.push({ id: "relations", kind: "relations", title: "누가 누구 말을 받나", bg: NIGHT });
+  if (rec && summonRanking(rec).length) slides.push({ id: "summon", kind: "summon", title: "부르면 출동", bg: next() });
   slides.push({ id: "hidden", kind: "hidden", title: "숨은 기록", bg: next() });
   slides.push({ id: "acts", kind: "acts", title: "줄거리", bg: SPARK });
   if (replayScene(saved)) slides.push({ id: "replay", kind: "replay", title: "명장면 다시 보기", bg: NIGHT });

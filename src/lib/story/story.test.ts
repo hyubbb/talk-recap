@@ -9,17 +9,18 @@ describe("buildSlides", () => {
     const s = buildSlides(r);
     const kinds = [...new Set(s.map((x) => x.kind))];
     expect(kinds).toEqual([
-      "opening", "ranking", "catchphrase", "origin", "hours", "duty", "laugh", "lonely", "rally", "mood",
-      "hidden", "acts", "member", "pair", "mbti", "awards", "bag", "closing",
+      "opening", "ranking", "catchphrase", "origin", "hours", "duty", "laugh", "lonely", "ghost", "rally", "jinx", "mood",
+      "summon", "hidden", "acts", "member", "pair", "mbti", "awards", "bag", "closing",
     ]);
     expect(s.filter((x) => x.kind === "member")).toHaveLength(3);
     expect(new Set(s.map((x) => x.id)).size).toBe(s.length);
     for (const x of s) expect(x.title.length).toBeGreaterThan(0);
   });
 
-  it("예전 결과(fun 없음)는 새 분석 장 없이 기존 순서 그대로", () => {
+  it("예전 결과(fun·records 없음)는 새 분석 장 없이 기존 순서 그대로", () => {
     const r = fakeReport(3);
     delete r.stats.fun;
+    delete r.stats.records;
     const kinds = [...new Set(buildSlides(r).map((x) => x.kind))];
     expect(kinds).toEqual(["opening", "ranking", "catchphrase", "hours", "duty", "hidden", "acts", "member", "pair", "mbti", "awards", "bag", "closing"]);
   });
@@ -32,6 +33,16 @@ describe("buildSlides", () => {
     const kinds = buildSlides(r).map((x) => x.kind);
     expect(kinds).not.toContain("laugh");
     expect(kinds).not.toContain("lonely");
+  });
+
+  it("잠수가 짧고, 텔레파시가 없고, 불린 횟수가 적으면 그 장은 만들지 않는다", () => {
+    const r = fakeReport(3);
+    const rec = r.stats.records!;
+    rec.ghosts = rec.ghosts.map((g) => ({ ...g, days: 2 }));
+    rec.jinx = null;
+    rec.summons = rec.summons.map((s) => ({ ...s, calls: 4 }));
+    const kinds = buildSlides(r).map((x) => x.kind);
+    for (const k of ["ghost", "jinx", "summon"] as const) expect(kinds).not.toContain(k);
   });
 
   it("답장 기록이 있으면 '누가 누구 말을 받나', 자기 자신은 빼고 가장 많이 받은 사람", () => {
