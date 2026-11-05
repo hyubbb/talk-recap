@@ -63,7 +63,8 @@ export function listReports(limit = 5): ReportSummary[] {
         if (!key?.startsWith(REPORT_PREFIX)) continue;
         try {
           const r = JSON.parse(store.getItem(key) ?? "") as Partial<SavedReport>;
-          if (!r.id || typeof r.createdAt !== "number" || seen.has(r.id)) continue;
+          // 샘플 결과(src/lib/report/sample.ts)는 목록에 넣지 않는다
+          if (!r.id || r.id === "sample" || typeof r.createdAt !== "number" || seen.has(r.id)) continue;
           seen.add(r.id);
           out.push({
             id: r.id,

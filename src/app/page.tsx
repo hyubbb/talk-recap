@@ -44,6 +44,12 @@ export default function Home() {
           >
             대화 파일 올리기
           </Link>
+          <Link
+            href="/sample"
+            className="mt-3 flex h-12 w-full items-center justify-center rounded-[14px] bg-dusk text-[15px] font-semibold"
+          >
+            샘플 결과 먼저 보기
+          </Link>
           {/* dialog는 <p> 안에 둘 수 없어서 문장과 버튼을 나란히 둔다 */}
           <div className="mt-3 flex flex-wrap items-center justify-center gap-x-1 text-[13px] text-haze">
             <span>대화 파일은 브라우저에서만 읽고, 서버에 저장하지 않아요.</span>

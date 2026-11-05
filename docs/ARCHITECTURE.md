@@ -77,3 +77,10 @@
 - 예전 모양(변화·스트레스·챙김 칸)으로 저장된 결과는 `src/lib/report/normalize.ts`가 읽을 때 꼭지로 옮긴다. 공유 스키마도 두 모양을 다 받는다
 - `SavedReport.contexts`: `quoteKey(인용)` → 앞뒤 2줄. `SavedReport.phrases`: 멤버 id → 말버릇·횟수·쓴 장면. 둘 다 예전 결과엔 없다
 - 스키마를 바꾸면 `llm.test.ts`의 strict 검사도 같이 통과해야 한다.
+
+## 샘플 결과 (`/sample`)
+
+- `public/sample-kakao.txt`(지어낸 대화)로 미리 만든 결과가 `public/sample-report.json`이다. AI를 다시 돌리지 않고 결제 없이 보여준다.
+- `/sample`이 이 JSON을 브라우저 저장소에 id `sample`로 넣고 `/r/sample`로 보낸다. `/r/sample`에 바로 들어와도 자동으로 넣는다. '지난 결과' 목록과 공유 링크에서는 빠진다.
+- `/new?sample=1`로 샘플 대화를 불러온 상태에서 "AI 분석 시작"을 누르면 결제·분석 대신 "샘플 결과 보기 / 내 대화 올리기"를 묻는다 (`SampleChoice`).
+- 리포트 모양이 바뀌면 예전 JSON도 `normalizeReport`로 열리지만, 새 기능을 보여주려면 목업 모드로 샘플 대화를 분석한 결과에 지어낸 문구를 채워 JSON을 다시 만든다. 실제 대화·실명은 절대 넣지 않는다.

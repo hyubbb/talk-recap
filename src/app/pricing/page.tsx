@@ -55,13 +55,13 @@ export default function PricingPage() {
           대화 올리고 분석 시작
         </Link>
         <Link
-          href="/new?sample=1&pay=1"
+          href="/sample"
           className="mt-3 flex h-12 items-center justify-center rounded-[14px] bg-dusk text-[15px] font-semibold"
         >
-          샘플 대화로 결제 흐름 보기
+          샘플 결과 미리 보기
         </Link>
         <p className="mt-2 text-center text-[12px] text-haze">
-          지어낸 샘플 대화로 분석 시작 → 결제창까지 확인할 수 있어요.
+          지어낸 샘플 대화로 미리 만든 결과예요. 결제 없이 볼 수 있어요.
         </p>
 
         <section className="mt-8 rounded-[var(--radius-card)] bg-dusk p-5">

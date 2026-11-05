@@ -20,6 +20,7 @@ import { BagCard } from "@/components/bag/BagCard";
 import { MemberCard } from "@/components/cards/MemberCard";
 import { SaveImageButton } from "@/components/cards/SaveImageButton";
 import { PastReportsMenu } from "./PastReportsMenu";
+import { SAMPLE_ID } from "@/lib/report/sample";
 // [보류] 이미지 만들기 프롬프트 — 다시 켜려면 이 import와 아래 "이미지 만들기 프롬프트" 섹션 주석을 풀기 (docs/TASKS.md "보류 중인 기능")
 // import { ImagePrompts } from "@/components/prompts/ImagePrompts";
 import type { Report } from "@/lib/llm/schema";
@@ -83,6 +84,17 @@ export function ReportView({ saved, shared, actions, me }: Props) {
         <p className="mb-6 text-[13px] text-haze">
           공유된 결과예요 · {new Date(shared.expiresAt).toLocaleDateString("ko-KR")}까지 볼 수 있어요
         </p>
+      )}
+
+      {saved.id === SAMPLE_ID && !shared && (
+        <div className="mb-6 flex flex-col gap-3 rounded-[14px] bg-dusk p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[14px] leading-[1.55] text-haze">
+            지어낸 샘플 대화로 만든 <b className="font-semibold text-moon">예시 결과</b>예요. 우리 방 대화를 올리면 이렇게 나와요.
+          </p>
+          <Link href="/new" className="shrink-0 rounded-full bg-spark px-4 py-2 text-center text-[14px] font-bold text-spark-ink">
+            내 대화로 분석하기
+          </Link>
+        </div>
       )}
 
       {isMock && !shared && (

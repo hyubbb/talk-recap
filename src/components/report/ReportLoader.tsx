@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Story } from "@/components/story/Story";
 import type { SavedReport } from "@/lib/report/storage";
 import { ReportView } from "./ReportView";
 import { loadReport } from "@/lib/report/storage";
 import { SharePanel } from "@/components/share/SharePanel";
+import { SAMPLE_ID } from "@/lib/report/sample";
 
 const noop = () => () => {};
 
@@ -20,6 +21,7 @@ export function ReportLoader({ id, shareEnabled }: { id: string; shareEnabled: b
   );
   const saved = JSON.parse(raw) as ReturnType<typeof loadReport>;
 
+  if (!saved && id === SAMPLE_ID) return <SampleRedirect />;
   if (!saved) {
     return (
       <main className="mx-auto max-w-[560px] px-5 py-16">
@@ -33,7 +35,14 @@ export function ReportLoader({ id, shareEnabled }: { id: string; shareEnabled: b
       </main>
     );
   }
-  return <LocalExperience saved={saved} shareEnabled={shareEnabled} />;
+  return <LocalExperience saved={saved} shareEnabled={shareEnabled && saved.id !== SAMPLE_ID} />;
+}
+
+/** 샘플 결과를 아직 안 넣은 브라우저에서 /r/sample로 바로 들어온 경우 */
+function SampleRedirect() {
+  const router = useRouter();
+  useEffect(() => router.replace("/sample"), [router]);
+  return <main className="mx-auto max-w-[560px] px-5 py-16 text-haze">샘플 결과를 여는 중…</main>;
 }
 
 /** 업로더 화면: 스토리 먼저 → 리포트(공유 버튼 포함) */
@@ -67,7 +76,8 @@ function LocalExperience({ saved, shareEnabled }: { saved: SavedReport; shareEna
               퀴즈 미리 풀기
             </Link>
           </div>
-          <SharePanel saved={saved} enabled={shareEnabled} />
+          {/* 샘플 결과는 공유 링크를 만들지 않는다 */}
+          {saved.id !== SAMPLE_ID && <SharePanel saved={saved} enabled={shareEnabled} />}
         </>
       }
     />

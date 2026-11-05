@@ -5,6 +5,7 @@ import { useAtom, useAtomValue, useStore } from "jotai";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { RecentReports } from "@/components/upload/RecentReports";
+import { SampleChoice } from "@/components/upload/SampleChoice";
 import { DataNoticeModal } from "@/components/DataNoticeModal";
 import { AnalysisOverlay } from "@/components/analysis/AnalysisOverlay";
 import { Dropzone } from "@/components/upload/Dropzone";
@@ -60,6 +61,9 @@ export default function NewPage() {
   const lastOrder = useRef<PaidOrder>(null);
   const [payMode, setPayMode] = useState(PAYMENT_REQUIRED);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // ?sample=1 로 샘플 대화를 불러온 상태. 이때는 결제·AI 분석 대신 미리 만든 샘플 결과로 안내한다
+  const [isSample, setIsSample] = useState(false);
+  const [sampleChoice, setSampleChoice] = useState(false);
   const [payBusy, setPayBusy] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   // 결제했는데 안 끝난 분석 (탭을 닫았다 다시 온 경우)
@@ -71,12 +75,13 @@ export default function NewPage() {
   const days = span ? spanDays(span.from, span.to) : 0;
   const product = productForDays(days);
 
-  const onFiles = (files: File[]) => {
+  const onFiles = (files: File[], sample = false) => {
     filesRef.current = files;
+    setIsSample(sample);
     parse(files);
   };
 
-  // ?pay=1 결제 흐름 미리 보기, ?sample=1 샘플 대화, ?resume=주문번호 결제하고 돌아옴
+  // ?pay=1 결제 흐름 미리 보기, ?sample=1 샘플 대화(분석 시작 시 샘플 결과로 안내), ?resume=주문번호 결제하고 돌아옴
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     // URL을 읽은 결과는 다음 틱에 반영한다 (effect 안에서 바로 setState 하지 않기)
@@ -84,7 +89,7 @@ export default function NewPage() {
     if (q.get("sample") === "1") {
       fetch("/sample-kakao.txt")
         .then((r) => r.blob())
-        .then((b) => onFiles([new File([b], "샘플-가짜대화.txt", { type: "text/plain" })]));
+        .then((b) => onFiles([new File([b], "샘플-가짜대화.txt", { type: "text/plain" })], true));
     }
     const orderNo = q.get("resume");
     if (!orderNo) {
@@ -146,6 +151,7 @@ export default function NewPage() {
   // AI 분석 시작: 무료면 바로, 결제 모드면 기간·요금 확인 창을 띄운다
   const start = () => {
     setPayError(null);
+    if (isSample) return setSampleChoice(true);
     if (!payMode) return run.mutate(null);
     setConfirmOpen(true);
   };
@@ -292,6 +298,14 @@ export default function NewPage() {
           </div>
         </>
       )}
+      <SampleChoice
+        open={sampleChoice}
+        onClose={() => setSampleChoice(false)}
+        onSample={() => router.push("/sample")}
+        // 샘플을 비우고 처음 업로드 화면으로. 워커·jotai 상태까지 깨끗하게 하려고 일부러 새로 연다
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        onUpload={() => window.location.assign("/new")}
+      />
       {span && (
         <PayConfirm
           open={confirmOpen}
