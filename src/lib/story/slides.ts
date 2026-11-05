@@ -170,11 +170,12 @@ export function inkOn(bg: string): string {
 }
 
 /**
- * 샘플 결과용 맛보기: 첫 멤버 아키타입 장까지만 보여주고 "우리 방은?" 장으로 끝낸다.
- * (통계 장은 그대로, AI 분석 장은 한 사람만)
+ * 샘플 결과용 맛보기: 앞쪽 통계 장 몇 개만 보여주고 "우리 방은?" 장으로 끝낸다.
+ * AI 분석 장(멤버·궁합·MBTI·어워드·가방·줄거리 등)은 보여주지 않는다.
  */
+export const TEASER_SLIDES = 4;
+const AI_KINDS = new Set<SlideKind>(["acts", "replay", "member", "pair", "mbti", "awards", "bag", "closing"]);
 export function teaserSlides(slides: Slide[]): Slide[] {
-  const firstMember = slides.findIndex((s) => s.kind === "member");
-  const cut = firstMember >= 0 ? firstMember + 1 : Math.min(slides.length, 8);
-  return [...slides.slice(0, cut), { id: "teaser", kind: "teaser", title: "우리 방은 어떨까", bg: SPARK }];
+  const free = slides.filter((s) => !AI_KINDS.has(s.kind)).slice(0, TEASER_SLIDES);
+  return [...free, { id: "teaser", kind: "teaser", title: "우리 방은 어떨까", bg: SPARK }];
 }

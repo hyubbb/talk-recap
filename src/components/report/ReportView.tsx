@@ -51,7 +51,9 @@ export function ReportView({ saved, shared, actions, me }: Props) {
   const teaser = saved.id === SAMPLE_ID && !shared;
   const upto = <T,>(arr: T[], n: number) => (teaser ? arr.slice(0, n) : arr);
   const more = (arr: unknown[], n: number, what: string) =>
-    teaser && arr.length > n ? <Locked className="mt-3" title={`${what} ${arr.length - n}개 더`} /> : null;
+    teaser && arr.length > n ? (
+      <Locked className={n ? "mt-3" : ""} title={n ? `${what} ${arr.length - n}개 더` : `${what} ${arr.length}개`} />
+    ) : null;
   const idOf = new Map(members.map((m) => [m.name, m.id]));
   const memberName = (id: string) => members.find((m) => m.id === id)?.name ?? "누군가";
   const memberColor = (id: string) => members.find((m) => m.id === id)?.color ?? "var(--color-haze)";
@@ -187,7 +189,7 @@ export function ReportView({ saved, shared, actions, me }: Props) {
 
       <Section title="궁합">
         <ul className="flex flex-col gap-3">
-          {upto(pairs, 1).map((p, i) => (
+          {upto(pairs, 0).map((p, i) => (
             <li key={`${p.a}-${p.b}`} className={`rounded-[var(--radius-card)] p-4 ${i === 0 ? "bg-dusk-2" : "bg-dusk"}`}>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[15px] font-semibold">
@@ -202,7 +204,7 @@ export function ReportView({ saved, shared, actions, me }: Props) {
             </li>
           ))}
         </ul>
-        {more(pairs, 1, "궁합")}
+        {more(pairs, 0, "궁합")}
       </Section>
 
       {topResponders(stats).length > 0 && (
@@ -228,7 +230,7 @@ export function ReportView({ saved, shared, actions, me }: Props) {
 
       <Section title="MBTI 추론">
         <div className="flex flex-col gap-3">
-          {upto(report.members, 1).map((m) => (
+          {upto(report.members, 0).map((m) => (
             <details key={m.name} className="rounded-[var(--radius-card)] bg-dusk p-4">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                 <span className="text-[15px] font-semibold" style={{ color: color(m.name) }}>
@@ -258,7 +260,7 @@ export function ReportView({ saved, shared, actions, me }: Props) {
             </details>
           ))}
         </div>
-        {more(report.members, 1, "MBTI")}
+        {more(report.members, 0, "MBTI 추론")}
       </Section>
 
       <Section title="What's in my bag">
