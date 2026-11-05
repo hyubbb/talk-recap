@@ -21,6 +21,7 @@ import { MemberCard } from "@/components/cards/MemberCard";
 import { SaveImageButton } from "@/components/cards/SaveImageButton";
 import { PastReportsMenu } from "./PastReportsMenu";
 import { SAMPLE_ID } from "@/lib/report/sample";
+import { Locked } from "@/components/Locked";
 // [보류] 이미지 만들기 프롬프트 — 다시 켜려면 이 import와 아래 "이미지 만들기 프롬프트" 섹션 주석을 풀기 (docs/TASKS.md "보류 중인 기능")
 // import { ImagePrompts } from "@/components/prompts/ImagePrompts";
 import type { Report } from "@/lib/llm/schema";
@@ -46,6 +47,11 @@ export function ReportView({ saved, shared, actions, me }: Props) {
   const color = (name: string) => byName.get(name)?.color ?? "var(--color-haze)";
   const pairs = [...report.pairs].sort((a, b) => b.score - a.score);
   const isMock = saved.provider === "mock";
+  // 샘플 결과는 맛보기만: AI 분석 칸은 앞쪽 몇 개만 보여주고 나머지는 잠근다 (통계 칸은 그대로)
+  const teaser = saved.id === SAMPLE_ID && !shared;
+  const upto = <T,>(arr: T[], n: number) => (teaser ? arr.slice(0, n) : arr);
+  const more = (arr: unknown[], n: number, what: string) =>
+    teaser && arr.length > n ? <Locked className="mt-3" title={`${what} ${arr.length - n}개 더`} /> : null;
   const idOf = new Map(members.map((m) => [m.name, m.id]));
   const memberName = (id: string) => members.find((m) => m.id === id)?.name ?? "누군가";
   const memberColor = (id: string) => members.find((m) => m.id === id)?.color ?? "var(--color-haze)";
@@ -153,7 +159,7 @@ export function ReportView({ saved, shared, actions, me }: Props) {
 
       <Section title="멤버">
         <div className="flex flex-col gap-4">
-          {report.members.map((m) => (
+          {upto(report.members, 1).map((m) => (
             <article key={m.name} className="overflow-hidden rounded-[var(--radius-card)] bg-dusk">
               <div className="p-5" style={{ background: color(m.name), color: "var(--color-night)" }}>
                 <div className="flex items-center gap-2 text-[14px] font-semibold">
@@ -176,11 +182,12 @@ export function ReportView({ saved, shared, actions, me }: Props) {
             </article>
           ))}
         </div>
+        {more(report.members, 1, "멤버 분석")}
       </Section>
 
       <Section title="궁합">
         <ul className="flex flex-col gap-3">
-          {pairs.map((p, i) => (
+          {upto(pairs, 1).map((p, i) => (
             <li key={`${p.a}-${p.b}`} className={`rounded-[var(--radius-card)] p-4 ${i === 0 ? "bg-dusk-2" : "bg-dusk"}`}>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[15px] font-semibold">
@@ -195,6 +202,7 @@ export function ReportView({ saved, shared, actions, me }: Props) {
             </li>
           ))}
         </ul>
+        {more(pairs, 1, "궁합")}
       </Section>
 
       {topResponders(stats).length > 0 && (
@@ -220,7 +228,7 @@ export function ReportView({ saved, shared, actions, me }: Props) {
 
       <Section title="MBTI 추론">
         <div className="flex flex-col gap-3">
-          {report.members.map((m) => (
+          {upto(report.members, 1).map((m) => (
             <details key={m.name} className="rounded-[var(--radius-card)] bg-dusk p-4">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                 <span className="text-[15px] font-semibold" style={{ color: color(m.name) }}>
@@ -250,19 +258,21 @@ export function ReportView({ saved, shared, actions, me }: Props) {
             </details>
           ))}
         </div>
+        {more(report.members, 1, "MBTI")}
       </Section>
 
       <Section title="What's in my bag">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {report.members.map((m) => (
+          {upto(report.members, 1).map((m) => (
             <BagItem key={m.name} member={m} color={color(m.name)} />
           ))}
         </div>
+        {more(report.members, 1, "가방")}
       </Section>
 
       <Section title="어워드">
         <ul className="flex flex-col gap-3">
-          {report.awards.map((a, i) => (
+          {upto(report.awards, 2).map((a, i) => (
             <li key={a.title} className="flex flex-col gap-2 rounded-[var(--radius-card)] bg-dusk p-4">
               <p className="font-pixel text-[14px] text-spark">{a.title}</p>
               <p className="mt-1 text-[17px] font-bold" style={{ color: color(a.winner) }}>
@@ -278,6 +288,7 @@ export function ReportView({ saved, shared, actions, me }: Props) {
             </li>
           ))}
         </ul>
+        {more(report.awards, 2, "어워드")}
       </Section>
 
       {/* [보류] 이미지 만들기 프롬프트 — 다시 켤 때 주석 해제 (docs/TASKS.md "보류 중인 기능")

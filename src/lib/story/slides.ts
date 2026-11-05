@@ -29,7 +29,9 @@ export type SlideKind =
   | "mbti"
   | "awards"
   | "bag"
-  | "closing";
+  | "closing"
+  /** 샘플 결과 맛보기 끝: 내 대화로 분석하기 */
+  | "teaser";
 
 export interface Slide {
   id: string;
@@ -165,4 +167,14 @@ export function inkOn(bg: string): string {
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
   const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   return lum > 0.45 ? NIGHT : "#f3efff";
+}
+
+/**
+ * 샘플 결과용 맛보기: 첫 멤버 아키타입 장까지만 보여주고 "우리 방은?" 장으로 끝낸다.
+ * (통계 장은 그대로, AI 분석 장은 한 사람만)
+ */
+export function teaserSlides(slides: Slide[]): Slide[] {
+  const firstMember = slides.findIndex((s) => s.kind === "member");
+  const cut = firstMember >= 0 ? firstMember + 1 : Math.min(slides.length, 8);
+  return [...slides.slice(0, cut), { id: "teaser", kind: "teaser", title: "우리 방은 어떨까", bg: SPARK }];
 }

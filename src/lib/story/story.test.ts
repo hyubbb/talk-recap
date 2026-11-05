@@ -110,3 +110,15 @@ describe("buildSlides", () => {
     expect(inkOn("#17142e")).toBe("#f3efff");
   });
 });
+
+describe("샘플 맛보기 스토리", () => {
+  it("첫 멤버 장까지만 남기고 '우리 방은?' 장으로 끝난다", async () => {
+    const { buildSlides, teaserSlides } = await import("./slides");
+    const { fakeReport } = await import("../testing/fakeReport");
+    const all = buildSlides(fakeReport(4));
+    const t = teaserSlides(all);
+    expect(t.at(-1)?.kind).toBe("teaser");
+    expect(t.filter((s) => s.kind === "member")).toHaveLength(1);
+    expect(t.some((s) => s.kind === "awards" || s.kind === "bag" || s.kind === "mbti")).toBe(false);
+  });
+});

@@ -57,6 +57,7 @@ function LocalExperience({ saved, shareEnabled }: { saved: SavedReport; shareEna
     return (
       <Story
         saved={saved}
+        teaser={saved.id === SAMPLE_ID ? { onUpload: () => router.push("/new") } : undefined}
         onClose={() => setStory(false)}
         onQuiz={() => router.push(`/r/${saved.id}/quiz`)}
         onShare={shareEnabled ? toShare : undefined}

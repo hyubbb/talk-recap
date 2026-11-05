@@ -12,6 +12,7 @@ import { Dropzone } from "@/components/upload/Dropzone";
 import { MemberEditor } from "@/components/upload/MemberEditor";
 import { RangePicker } from "@/components/upload/RangePicker";
 import { StatsPreview } from "@/components/upload/StatsPreview";
+import { AiTeaser, RoomHeadline } from "@/components/upload/AiTeaser";
 import { FormatReport } from "@/components/upload/FormatReport";
 import { needsFormatReport } from "@/lib/kakao/formatReport";
 import { useAnalyzeWorker } from "@/hooks/useAnalyzeWorker";
@@ -270,8 +271,13 @@ export default function NewPage() {
           </p>
           <MemberEditor onChange={onMembersChange} />
 
-          <h2 className="mt-10 mb-4 text-[20px] font-bold">미리 보기</h2>
-          <StatsPreview />
+          <h2 className="mt-10 text-[20px] font-bold">무료 미리 보기</h2>
+          <p className="mt-1 mb-4 text-[14px] leading-[1.55] text-haze">AI 없이 이 브라우저에서 바로 계산했어요.</p>
+          <RoomHeadline />
+          <div className="mt-4">
+            <StatsPreview />
+          </div>
+          <AiTeaser />
 
           <div data-fixed-cta className="fixed inset-x-0 bottom-0 bg-gradient-to-t from-night via-night to-transparent pt-8">
             <div className="bg-night pb-5">

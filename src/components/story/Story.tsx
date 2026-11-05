@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SavedReport } from "@/lib/report/storage";
-import { buildSlides, inkOn, relatedWords } from "@/lib/story/slides";
+import { buildSlides, inkOn, relatedWords, teaserSlides } from "@/lib/story/slides";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { SaveImageButton, Watermark } from "@/components/cards/SaveImageButton";
 import { SlideContent, type SlideActions } from "./SlideContent";
@@ -17,14 +17,20 @@ export function Story({
   onClose,
   onQuiz,
   onShare,
+  teaser,
 }: {
   saved: SavedReport;
   me?: string | null;
   onClose: () => void;
   onQuiz?: () => void;
   onShare?: () => void;
+  /** 샘플 결과 맛보기: 첫 멤버까지만 보여주고 "내 대화로 분석하기"로 끝낸다 */
+  teaser?: { onUpload: () => void };
 }) {
-  const slides = useMemo(() => buildSlides(saved, me), [saved, me]);
+  const slides = useMemo(() => {
+    const all = buildSlides(saved, me);
+    return teaser ? teaserSlides(all) : all;
+  }, [saved, me, teaser]);
   const [index, setIndex] = useState(0);
   const reduced = useReducedMotion();
   const frameRef = useRef<HTMLDivElement>(null);
@@ -64,7 +70,7 @@ export function Story({
     go(e.clientX - rect.left < rect.width / 3 ? -1 : 1);
   };
 
-  const actions: SlideActions = { onReport: onClose, onQuiz, onShare };
+  const actions: SlideActions = { onReport: onClose, onQuiz, onShare, onUpload: teaser?.onUpload };
 
   return (
     <div

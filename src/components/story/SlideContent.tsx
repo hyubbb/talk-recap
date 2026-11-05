@@ -14,6 +14,8 @@ export interface SlideActions {
   onReport: () => void;
   onQuiz?: () => void;
   onShare?: () => void;
+  /** 샘플 맛보기 마지막 장 */
+  onUpload?: () => void;
 }
 
 /** 한 장의 내용. 숫자는 stats에서, 해석은 report에서 */
@@ -308,6 +310,32 @@ export function SlideContent({ slide, saved, ink, actions, words }: { slide: Sli
         </>
       );
     }
+    case "teaser":
+      return (
+        <>
+          <p className="font-pixel text-[15px]">샘플은 여기까지</p>
+          <div className="my-auto">
+            <p className="text-[30px] leading-[1.25] font-black tracking-[-0.03em]">
+              우리 방이면
+              <br />
+              누가 나올까요?
+            </p>
+            <p className="mt-4 text-[16px] leading-[1.55] font-medium opacity-80">
+              말버릇 왕, 명장면, 궁합, MBTI, 가방 속까지. 우리 방 친구들 이름으로 나와요.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2" data-no-capture onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}>
+            {actions.onUpload && (
+              <button type="button" onClick={actions.onUpload} className="h-12 rounded-[14px] bg-night text-[16px] font-bold text-moon">
+                내 대화로 분석하기
+              </button>
+            )}
+            <button type="button" onClick={actions.onReport} className="h-12 rounded-[14px] border border-current text-[16px] font-bold">
+              샘플 리포트 더 보기
+            </button>
+          </div>
+        </>
+      );
     case "closing":
       return (
         <>
