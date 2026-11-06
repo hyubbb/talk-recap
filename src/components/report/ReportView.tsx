@@ -154,7 +154,8 @@ export function ReportView({ saved, shared, actions, me }: Props) {
 
       {(report.dictionary?.length ?? 0) > 0 && (
         <Section title="우리 방 사전">
-          <Dictionary saved={saved} />
+          <Dictionary saved={saved} limit={teaser ? 1 : undefined} />
+          {more(report.dictionary ?? [], 1, "우리 방 말")}
           <p className="mt-3 text-[12px] text-haze">말은 대화에서 직접 골랐고, 뜻풀이는 AI가 썼어요</p>
         </Section>
       )}

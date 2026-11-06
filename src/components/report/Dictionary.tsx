@@ -7,9 +7,9 @@ import { ContextView, QuoteList } from "./Quotes";
  * 우리 방 사전: 코드가 뽑은 이 방 말(유행어·말버릇)에 AI가 붙인 뜻풀이.
  * 쓴 횟수와 원조는 stats에서, 예문은 검증된 인용이 없으면 분석 때 뽑아 둔 말버릇 장면으로 보여준다.
  */
-export function Dictionary({ saved }: { saved: SavedReport }) {
+export function Dictionary({ saved, limit }: { saved: SavedReport; limit?: number }) {
   const { report, stats, members } = saved;
-  const entries = report.dictionary ?? [];
+  const entries = (report.dictionary ?? []).slice(0, limit);
   if (!entries.length) return null;
   const member = (id: string) => members.find((m) => m.id === id);
 
