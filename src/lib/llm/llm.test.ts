@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { chunkNotesSchema, reportSchema, toStrictJsonSchema } from "./schema";
-import { keepKnownQuotes, verifyQuotes } from "./verify";
+import { keepKnownQuotes, verifyQuotes, verifyReport } from "./verify";
 import { mockChunkNotes, mockReport } from "./mock";
 
 const CHUNK = [
@@ -34,6 +34,64 @@ describe("인용 검증", () => {
     const { notes: v, dropped } = verifyQuotes(notes, CHUNK);
     expect(dropped).toBe(1);
     expect(v.members[0].quotes.map((q) => q.text)).toEqual(["오늘 회사 왜이럼"]);
+  });
+
+  it("문구가 같아도 다른 화자·날짜의 인용은 버리고 날짜 표기 차이는 허용한다", () => {
+    const chunk = [
+      "7/19 21:00 도토리: 오늘 만나자",
+      "7/19 21:01 고등어: 좋아",
+      "7/20 09:00 고등어: 오늘 만나자",
+    ].join("\n");
+    const notes = mockChunkNotes(chunk, ["도토리", "고등어"]);
+    notes.members[0].quotes.push(
+      { date: "7/19", who: "고등어", text: "오늘 만나자" },
+      { date: "7/20", who: "도토리", text: "오늘 만나자" },
+      { date: "07/19", who: "도토리", text: "오늘 만나자" },
+    );
+    const { notes: verified, dropped } = verifyQuotes(notes, chunk);
+    expect(dropped).toBe(2);
+    expect(verified.members[0].quotes).toEqual([
+      { date: "7/19", who: "도토리", text: "오늘 만나자" },
+      { date: "07/19", who: "도토리", text: "오늘 만나자" },
+    ]);
+  });
+
+  it("여러 줄 인용도 같은 메시지 안의 문구일 때만 남긴다", () => {
+    const notes = mockChunkNotes(CHUNK, ["가나다", "라마바"]);
+    notes.members[1].quotes.push({ date: "7/19", who: "라마바", text: "퇴근하고 싶다 진짜\n두 번째 줄" });
+    const { notes: verified } = verifyQuotes(notes, CHUNK);
+    expect(verified.members[1].quotes.at(-1)?.text).toBe("퇴근하고 싶다 진짜\n두 번째 줄");
+  });
+
+  it("콜론이 들어간 이름과 이어지는 줄도 구분하고 다른 메시지를 합치지 않는다", () => {
+    const chunk = [
+      "7/19 21:00 도토리: 친구: 얘기 시작",
+      "  다음 줄",
+      "7/19 21:01 고등어: 끼어든 말",
+      "  마지막 줄",
+    ].join("\n");
+    const notes = mockChunkNotes("7/19 21:00 도토리: 얘기 시작", ["도토리"]);
+    notes.members[0].name = "도토리: 친구";
+    notes.members[0].quotes = [
+      { date: "7/19", who: "도토리: 친구", text: "얘기 시작 다음 줄" },
+      { date: "7/19", who: "도토리: 친구", text: "얘기 시작 마지막 줄" },
+    ];
+    const { notes: verified, dropped } = verifyQuotes(notes, chunk);
+    expect(dropped).toBe(1);
+    expect(verified.members[0].quotes).toEqual([notes.members[0].quotes[0]]);
+  });
+
+  it("종합 단계에서도 같은 문구의 화자·날짜 변경을 버린다", () => {
+    const known = [{ date: "7/19", who: "도토리", text: "오늘 만나자" }];
+    const changed = [
+      { date: "7/20", who: "도토리", text: "오늘 만나자" },
+      { date: "7/19", who: "고등어", text: "오늘 만나자" },
+    ];
+    expect(keepKnownQuotes([{ quotes: changed }], known)[0].quotes).toEqual([]);
+    expect(keepKnownQuotes([{ quotes: [{ date: "07/19", who: "도토리", text: "오늘 만나자" }] }], known)[0].quotes).toHaveLength(1);
+    const report = mockReport([mockChunkNotes("7/19 21:00 도토리: 오늘 만나자", ["도토리"])], ["도토리"]);
+    report.members[0].quotes = changed;
+    expect(verifyReport(report, known).members[0].quotes).toEqual([]);
   });
 
   it("종합 단계에서 노트에 없던 인용은 버린다", () => {

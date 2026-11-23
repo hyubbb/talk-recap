@@ -2,30 +2,58 @@ import type { ChunkNotes, Quote, Report, StoryBlock } from "./schema";
 import { isSensitive } from "../quiz/sensitive";
 
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
+const dateKey = (date: string) => {
+  const m = /^(\d{1,2})\/(\d{1,2})$/.exec(date.trim());
+  if (!m) return null;
+  const month = Number(m[1]);
+  const day = Number(m[2]);
+  return month >= 1 && month <= 12 && day >= 1 && day <= 31 ? `${month}/${day}` : null;
+};
+const quoteKey = (q: Quote) => JSON.stringify([dateKey(q.date) ?? q.date.trim(), q.who.trim(), norm(q.text)]);
+
+/** 구간의 메시지 경계와 화자를 보존한다. 이어지는 줄은 같은 메시지의 본문이다. */
+function sourceMessages(chunkText: string, names: string[]) {
+  const speakers = [...names].sort((a, b) => b.length - a.length);
+  const messages: { date: string; who: string; text: string }[] = [];
+  let current: (typeof messages)[number] | null = null;
+  for (const line of chunkText.split("\n")) {
+    const head = /^(\d{1,2}\/\d{1,2}) \d{2}:\d{2} (.*)$/.exec(line);
+    if (head) {
+      const who = speakers.find((name) => head[2].startsWith(`${name}: `));
+      const date = dateKey(head[1]);
+      current = who && date ? { date, who, text: head[2].slice(who.length + 2) } : null;
+      if (current) messages.push(current);
+    } else if (line.startsWith("  ") && current) {
+      current.text += `\n${line.slice(2)}`;
+    }
+  }
+  return messages.map((m) => ({ ...m, text: norm(m.text) }));
+}
 
 /**
  * 인용이 실제 구간 원문에 있는지 확인한다. 없는 인용(환각)은 버린다.
  * 원문 줄 형식: "M/D HH:MM 이름: 내용"
  */
 export function verifyQuotes(notes: ChunkNotes, chunkText: string): { notes: ChunkNotes; dropped: number } {
-  const hay = norm(chunkText);
+  const messages = sourceMessages(chunkText, notes.members.map((m) => m.name));
   let dropped = 0;
-  const ok = (q: Quote) => {
+  const ok = (q: Quote, member: string) => {
     const t = norm(q.text);
-    const pass = t.length >= 2 && hay.includes(t);
+    const date = dateKey(q.date);
+    const pass = t.length >= 2 && !!date && q.who.trim() === member && messages.some((m) => m.date === date && m.who === member && m.text.includes(t));
     if (!pass) dropped++;
     return pass;
   };
   return {
-    notes: { ...notes, members: notes.members.map((m) => ({ ...m, quotes: m.quotes.filter(ok) })) },
+    notes: { ...notes, members: notes.members.map((m) => ({ ...m, quotes: m.quotes.filter((q) => ok(q, m.name)) })) },
     dropped,
   };
 }
 
 /** 종합 리포트의 인용은 구간 노트에 있던 인용만 남긴다. */
 export function keepKnownQuotes<T extends { quotes: Quote[] }>(members: T[], known: Quote[]): T[] {
-  const set = new Set(known.map((q) => norm(q.text)));
-  return members.map((m) => ({ ...m, quotes: m.quotes.filter((q) => set.has(norm(q.text))) }));
+  const set = new Set(known.map(quoteKey));
+  return members.map((m) => ({ ...m, quotes: m.quotes.filter((q) => set.has(quoteKey(q))) }));
 }
 
 const MEMBER_QUOTES = 5;
@@ -40,8 +68,8 @@ const DICTIONARY = 5;
  * - 사전: 코드가 뽑은 후보 말만, 민감 주제는 빼고, 인용은 그 말이 들어간 것만 최대 2개 (단어 자체는 코드로 센 말이라 인용이 없어도 남긴다)
  */
 export function verifyReport(report: Report, known: Quote[], words: string[] = []): Report {
-  const set = new Set(known.map((q) => norm(q.text)));
-  const real = (q: Quote) => norm(q.text).length >= 2 && set.has(norm(q.text));
+  const set = new Set(known.map(quoteKey));
+  const real = (q: Quote) => norm(q.text).length >= 2 && set.has(quoteKey(q));
   const uniq = (qs: Quote[], limit: number) => {
     const seen = new Set<string>();
     const out: Quote[] = [];
