@@ -12,6 +12,7 @@ import type { ChunkNotes, Report } from "@/lib/llm/schema";
 import type { ChunkText, DateRange } from "@/workers/protocol";
 import type { MemberGroup } from "@/lib/kakao/members";
 import { reportQuotes } from "@/lib/report/context";
+import { requireCompleteChunks } from "@/lib/analysis/completion";
 import type { ContextRequest, ContextResult } from "@/hooks/useAnalyzeWorker";
 import {
   finishPending,
@@ -84,6 +85,8 @@ export function useRunAnalysis(
         for (const c of p?.chunks ?? []) saved.set(c.index, c);
         savedSynth ??= p?.synth ?? null;
       }
+      // 예전에 일부 구간만으로 만든 종합 결과는 재사용하지 않고 빠진 구간부터 다시 분석한다.
+      if (savedSynth && texts.some((t) => !saved.has(t.index))) savedSynth = null;
       const remember = (t: ChunkText, c: ChunkCheckpoint) => {
         memo.current.set(runKey(t, total), c);
         if (order) saveChunkProgress(order.orderNo, c).catch(() => {});
@@ -145,6 +148,8 @@ export function useRunAnalysis(
       };
       await Promise.all(Array.from({ length: Math.min(CONCURRENCY, todo.length) }, worker));
 
+      const ok = requireCompleteChunks(notes);
+
       let synth: { report: Report; provider: string };
       if (savedSynth) {
         synth = savedSynth;
@@ -152,9 +157,6 @@ export function useRunAnalysis(
         usage.input = savedSynth.usage.input;
         usage.output = savedSynth.usage.output;
       } else {
-        const ok = notes.filter((n): n is ChunkNotes => n !== null);
-        if (ok.length === 0) throw new Error("모든 구간 분석이 실패했어요. API 키와 크레딧을 확인해 주세요.");
-
         setState({ kind: "running", stage: "synth", chunks: runs, startedAt });
         const nameOf = new Map(people.map((p) => [p.id, p.displayName]));
         const r = await postJson<{ report: Report; usage: typeof usage; provider: string }>("/api/analyze/synthesize", {
